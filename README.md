@@ -1,1 +1,2 @@
-# audio-conversion-service
+# Architecture Diagram
+![diagram](docs/architecture.jpeg)
