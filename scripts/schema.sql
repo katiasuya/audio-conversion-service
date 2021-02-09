@@ -21,7 +21,7 @@ BEGIN
 END$$;
 
 CREATE TABLE IF NOT EXISTS converter."user"(
-id UUID PRIMARY KEY,
+id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 username TEXT NOT NULL,
 password TEXT NOT NULL,
 created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL,
@@ -29,7 +29,7 @@ updated TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS converter.audio (
-id UUID PRIMARY KEY,
+id UUID  DEFAULT gen_random_uuid() PRIMARY KEY,
 user_id UUID NOT NULL,
 name TEXT NOT NULL,
 format format NOT NULL,
@@ -40,15 +40,17 @@ FOREIGN KEY (user_id) REFERENCES converter."user" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS converter.request (
-id UUID PRIMARY KEY,
+id UUID  DEFAULT gen_random_uuid() PRIMARY KEY,
 original_id UUID NOT NULL,
 converted_id UUID,
 created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL,
 updated TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL,
-status status DEFAULT 'queued',
+status status NOT NULL,
 FOREIGN KEY (original_id) REFERENCES converter.audio (id) ON DELETE CASCADE,
 FOREIGN KEY (converted_id) REFERENCES converter.audio (id) ON DELETE CASCADE
 );
+
+
 
 
 
