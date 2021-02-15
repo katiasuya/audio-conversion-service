@@ -7,3 +7,4 @@ create-database: ## Apply script to create database, user and schema for the ser
 	--variable=user_var=$(DB_USERNAME) \
 	--variable=password_var=$(DB_PASSWORD) \
 	-f scripts/schema.sql
+	
