@@ -3,11 +3,11 @@
     INSERT INTO converter."user" (username, password) VALUES
     ('username', 'password');
 
-   -- to log in the user getting the password
+   -- to log in the user 
 
-    SELECT u.password
-    FROM converter."user" u
-    WHERE username = 'aaa';
+    SELECT password
+    FROM converter."user" 
+    WHERE username = 'username';
 
    -- to upload an audio and create a request
    
