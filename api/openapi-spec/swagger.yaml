@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: Audio Converter API
+  description: A service that exposes a RESTful API to convert WAV to MP3 and vice versa.
+  version: 1.0.0
+servers:
+  - url: http://localhost
+    description: Development server
+paths:
+  /docs:
+    get:
+      summary: Get documentation
+      security:
+        - bearerAuth: []
+      tags: 
+       - Documentation
+      responses:
+        '200':    
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'    
+        '500':    
+          $ref: '#/components/responses/InternalServerError'
+          
+  /user/singup:
+    post:
+      summary: Create a user
+      tags: 
+       - Users
+      requestBody:
+          $ref: '#/components/requestBodies/User'
+      responses:
+        '201':    
+          description: The user has been created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+              example: 
+                id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
+        '400':    
+          $ref: '#/components/responses/BadRequest' 
+        '409':
+          description: The user already exists
+        '500':    
+          $ref: '#/components/responses/InternalServerError'
+          
+  /user/login:
+    post:
+      summary: Authenticate a user
+      tags: 
+       - Users
+      requestBody:
+          $ref: '#/components/requestBodies/User'
+      responses:
+        '200':    
+          description: Successful log in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    format: JWT
+        '400':
+            $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversion:
+    post:
+      summary: Make a request for audio conversion
+      security:
+        - bearerAuth: []
+      tags: 
+        - Requests
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: The request has been created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request_id:
+                    type: string
+                    format: uuid
+              example: 
+                  request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa7'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':   
+          $ref: '#/components/responses/InternalServerError'        
+          
+  /request_history:
+    get:
+      summary: Get request history of a user
+      security:
+        - bearerAuth: []
+      tags: 
+      - Requests
+      responses:
+        '200':
+          description: Successfully got user's request history
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    original_name:
+                      type: string
+                    created:
+                      type: string
+                      format: date-time
+                    updated:
+                      type: string
+                      format: date-time
+                    status:
+                      type: string
+                      enum: [queued, processing, done]
+                example:
+                  - original_name: Euphoria
+                    created: 2020-02-20 T 11:32:28 Z
+                    updated: 2020-02-20 T 13:27:03 Z 
+                    status: done
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+          
+  /download_audio/{id}:
+    get:
+      summary: Get a location to download the audio by id from
+      security:
+        - bearerAuth: []
+      tags:
+        - Audios 
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Got location successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+              example: 
+                location: "C:\\Users\\audios\\somename"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'     
+
+components:   
+  schemas:    
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+ securitySchemes:
+    bearerAuth: 
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+        
+  requestBodies:
+    User:
+      description: A JSON object containing user's credentials
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+          example:
+            username: AudioUser
+            password: qwerty1234
+
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'       
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'    
+    InternalServerError:
+      description: The server encountered an unexpected condition which prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'            
+                      
+      
