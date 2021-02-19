@@ -196,7 +196,7 @@ components:
         - code
         - message
 
- securitySchemes:
+  securitySchemes:
     bearerAuth: 
       type: http
       scheme: bearer
