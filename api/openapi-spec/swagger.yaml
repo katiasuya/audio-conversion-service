@@ -21,7 +21,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'    
         '500':    
           $ref: '#/components/responses/InternalServerError'
-          
   /user/singup:
     post:
       summary: Create a user
@@ -41,14 +40,13 @@ paths:
                     type: string
                     format: uuid
               example: 
-                id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
+                id: '1fa85f64-5717-4562-b3fc-2c963f66afa5'
         '400':    
           $ref: '#/components/responses/BadRequest' 
         '409':
           description: The user already exists
         '500':    
           $ref: '#/components/responses/InternalServerError'
-          
   /user/login:
     post:
       summary: Authenticate a user
@@ -67,13 +65,10 @@ paths:
                   token:
                     type: string
                     format: JWT
-        '400':
-            $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-          
   /conversion:
     post:
       summary: Make a request for audio conversion
@@ -85,11 +80,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/Audio'
       responses:
         '201':
           description: The request has been created successfully
@@ -102,14 +93,13 @@ paths:
                     type: string
                     format: uuid
               example: 
-                  request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa7'
+                  request_id: '2fa85f64-5717-4562-b3fc-2c963f66afa5'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':   
           $ref: '#/components/responses/InternalServerError'        
-          
   /request_history:
     get:
       summary: Get request history of a user
@@ -125,32 +115,22 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    original_name:
-                      type: string
-                    created:
-                      type: string
-                      format: date-time
-                    updated:
-                      type: string
-                      format: date-time
-                    status:
-                      type: string
-                      enum: [queued, processing, done]
-                example:
-                  - original_name: Euphoria
-                    created: 2020-02-20 T 11:32:28 Z
-                    updated: 2020-02-20 T 13:27:03 Z 
-                    status: done
+                  $ref: '#/components/schemas/ConversionRequest'
+              example:
+                - request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  original_id: '4fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  original_format: WAV
+                  converted_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  created: 2020-02-20 T 11:32:28 Z
+                  updated: 2020-02-20 T 13:27:03 Z 
+                  status: done
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-          
   /download_audio/{id}:
     get:
-      summary: Get a location to download the audio by id from
+      summary: Download the audio by id
       security:
         - bearerAuth: []
       tags:
@@ -164,18 +144,15 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Got location successfully 
+          description: Downloaded successfully 
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  location:
-                    type: string
-              example: 
-                location: "C:\\Users\\audios\\somename"
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/Audio'
+              example:
+                name: Euphoria.mp3
+                format: MP3
+                file: 'some binary sequence'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -185,6 +162,44 @@ paths:
 
 components:   
   schemas:    
+    Audio:
+      type: object
+      properties:
+        name: 
+          type: string
+        format:
+          $ref: '#/components/schemas/Format'
+        file:
+          type: string
+          format: binary
+    ConversionRequest:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        original_id:
+          type: string
+          format: uuid
+        original_format:
+          $ref: '#/components/schemas/Format'
+        converted_id:
+          type: string
+          format: uuid  
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/Status'
+    Format: 
+        type: string
+        enum: [MP3, WAV]
+    Status:
+        type: string
+        enum: [queued, processing, done]
     Error:
       type: object
       properties:
@@ -244,8 +259,8 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'    
+            $ref: '#/components/schemas/Error'  
+
+
+
             
-                    
-
-
