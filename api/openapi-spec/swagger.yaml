@@ -120,7 +120,8 @@ paths:
                 - request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
                   original_id: '4fa85f64-5717-4562-b3fc-2c963f66afa5'
                   original_format: WAV
-                  converted_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  target_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  target_format: MP3
                   created: 2020-02-20 T 11:32:28 Z
                   updated: 2020-02-20 T 13:27:03 Z 
                   status: done
