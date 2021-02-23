@@ -65,6 +65,10 @@ paths:
                   token:
                     type: string
                     format: JWT
+              example: 
+                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+                SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -184,9 +188,11 @@ components:
           format: uuid
         original_format:
           $ref: '#/components/schemas/Format'
-        converted_id:
+        target_id:
           type: string
           format: uuid  
+          target_format:
+          $ref: '#/components/schemas/Format'
         created:
           type: string
           format: date-time
