@@ -1,7 +1,11 @@
 package main
 
-import "github.com/katiasuya/audio-conversion-service/internal/app"
+import (
+	"log"
+
+	"github.com/katiasuya/audio-conversion-service/internal/app"
+)
 
 func main() {
-	app.Start()
+	log.Fatal(app.Run())
 }

@@ -2,26 +2,24 @@
 package app
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 func initRoutes(r *mux.Router) {
-	r.HandleFunc("/docs", showDoc).Methods("GET")
-	r.HandleFunc("/user/signup", signUp).Methods("POST")
-	r.HandleFunc("/user/login", logIn).Methods("POST")
-	r.HandleFunc("/conversion", convert).Methods("POST")
-	r.HandleFunc("/request_history", showHistory).Methods("GET")
-	r.HandleFunc("/download_audio/{id}", download).Methods("GET")
+	r.HandleFunc("/docs", handlerShowDoc).Methods("GET")
+	r.HandleFunc("/user/signup", handlerSignUp).Methods("POST")
+	r.HandleFunc("/user/login", handlerLogIn).Methods("POST")
+	r.HandleFunc("/conversion", handlerConvert).Methods("POST")
+	r.HandleFunc("/request_history", handlerShowHistory).Methods("GET")
+	r.HandleFunc("/download_audio/{id}", handlerDownload).Methods("GET")
 }
 
-// Start starts the application service
-func Start() {
+// Run starts running the application service
+func Run() error {
 	r := mux.NewRouter()
 	initRoutes(r)
-	http.Handle("/", r)
 
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	return http.ListenAndServe(":8000", r)
 }

@@ -10,7 +10,6 @@ import (
 )
 
 func userValidation(w http.ResponseWriter, r *http.Request) (domain.User, error) {
-
 	var u domain.User
 	err := json.NewDecoder(r.Body).Decode(&u)
 	defer r.Body.Close()
@@ -27,23 +26,11 @@ func userValidation(w http.ResponseWriter, r *http.Request) (domain.User, error)
 	return u, nil
 }
 
-func authValidation(w http.ResponseWriter, u domain.User) error {
-	if err := u.IsAuthorized(); err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return err
-	}
-	return nil
-}
-
-func showDoc(w http.ResponseWriter, r *http.Request) {
-	var u domain.User
-	if err := authValidation(w, u); err != nil {
-		return
-	}
+func handlerShowDoc(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Showing documentation")
 }
 
-func signUp(w http.ResponseWriter, r *http.Request) {
+func handlerSignUp(w http.ResponseWriter, r *http.Request) {
 	u, err := userValidation(w, r)
 	if err != nil {
 		return
@@ -59,7 +46,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(userID))
 }
 
-func logIn(w http.ResponseWriter, r *http.Request) {
+func handlerLogIn(w http.ResponseWriter, r *http.Request) {
 	u, err := userValidation(w, r)
 	if err != nil {
 		return
@@ -74,13 +61,7 @@ func logIn(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, generatedToken)
 }
 
-func convert(w http.ResponseWriter, r *http.Request) {
-
-	var u domain.User
-	if err := authValidation(w, u); err != nil {
-		return
-	}
-
+func handlerConvert(w http.ResponseWriter, r *http.Request) {
 	var a domain.Audio
 	err := json.NewDecoder(r.Body).Decode(&a)
 	defer r.Body.Close()
@@ -94,24 +75,12 @@ func convert(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(requestID))
 }
 
-func showHistory(w http.ResponseWriter, r *http.Request) {
-
-	var u domain.User
-	if err := authValidation(w, u); err != nil {
-		return
-	}
-
+func handlerShowHistory(w http.ResponseWriter, r *http.Request) {
 	rr := []domain.Request{}
 	fmt.Fprint(w, fmt.Sprint(rr))
 }
 
-func download(w http.ResponseWriter, r *http.Request) {
-
-	var u domain.User
-	if err := authValidation(w, u); err != nil {
-		return
-	}
-
+func handlerDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
