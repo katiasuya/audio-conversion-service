@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -46,7 +45,6 @@ func handlerConvert(w http.ResponseWriter, r *http.Request) {
 	convertResp := convertResponse{
 		ID: "1fa85f64-5717-4562-b3fc-2c963f66afa5",
 	}
-
 	respond(w, http.StatusCreated, convertResp)
 }
 
@@ -59,10 +57,10 @@ func handlerDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audio := audio{
+	audioResp := audio{
 		Name:   "Euphoria",
 		Format: "WAV",
 		File:   "euphoria.wav",
 	}
-	fmt.Fprint(w, fmt.Sprint(audio))
+	respond(w, http.StatusOK, audioResp)
 }
