@@ -57,7 +57,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&ur)
 	defer r.Body.Close()
 	if err != nil {
-		web.RespondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusUnauthorized, err)
 		return
 	}
 
