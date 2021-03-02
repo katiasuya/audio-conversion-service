@@ -5,15 +5,16 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/katiasuya/audio-conversion-service/internal/handler"
 )
 
 func initRoutes(r *mux.Router) {
-	r.HandleFunc("/docs", handlerShowDoc).Methods("GET")
-	r.HandleFunc("/user/signup", handlerSignUp).Methods("POST")
-	r.HandleFunc("/user/login", handlerLogIn).Methods("POST")
-	r.HandleFunc("/conversion", handlerConvert).Methods("POST")
-	r.HandleFunc("/request_history", handlerShowHistory).Methods("GET")
-	r.HandleFunc("/download_audio/{id}", handlerDownload).Methods("GET")
+	r.HandleFunc("/docs", handler.ShowDoc).Methods("GET")
+	r.HandleFunc("/user/signup", handler.SignUp).Methods("POST")
+	r.HandleFunc("/user/login", handler.LogIn).Methods("POST")
+	r.HandleFunc("/conversion", handler.Convert).Methods("POST")
+	r.HandleFunc("/request_history", handler.ShowHistory).Methods("GET")
+	r.HandleFunc("/download_audio/{id}", handler.Download).Methods("GET")
 }
 
 // Run starts running the application service

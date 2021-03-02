@@ -1,17 +1,15 @@
-package app
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/katiasuya/audio-conversion-service/internal/web"
 )
 
 type userRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type userResponse struct {
-	ID string `json:"id"`
 }
 
 func (ur *userRequest) validateCredentials() error {
@@ -24,40 +22,51 @@ func (ur *userRequest) exists() error {
 	return nil
 }
 
-func handlerSignUp(w http.ResponseWriter, r *http.Request) {
+// SignUp implements user's signing up.
+func SignUp(w http.ResponseWriter, r *http.Request) {
 	var ur userRequest
 	err := json.NewDecoder(r.Body).Decode(&ur)
 	defer r.Body.Close()
 	if err != nil {
-		respondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := ur.validateCredentials(); err != nil {
-		respondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := ur.exists(); err != nil {
-		respondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	userResp := userResponse{
+	type response struct {
+		ID string `json:"id"`
+	}
+	userResp := response{
 		ID: "1fa85f64-5717-4562-b3fc-2c963f66afa5",
 	}
-	respond(w, http.StatusCreated, userResp)
+	web.Respond(w, http.StatusCreated, userResp)
 }
 
-func handlerLogIn(w http.ResponseWriter, r *http.Request) {
+// LogIn implements user's logging in.
+func LogIn(w http.ResponseWriter, r *http.Request) {
 	var ur userRequest
 	err := json.NewDecoder(r.Body).Decode(&ur)
 	defer r.Body.Close()
 	if err != nil {
-		respondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	generatedToken := "eyJhbGciOiJIUzI1NiIs..."
-	respond(w, http.StatusOK, generatedToken)
+	type response struct {
+		Token string `json:"token"`
+	}
+	userResp := response{
+		Token: "eyJhbGciOiJIUzI1NiIs...",
+	}
+	web.Respond(w, http.StatusCreated, userResp)
+
 }

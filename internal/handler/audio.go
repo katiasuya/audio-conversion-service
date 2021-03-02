@@ -1,20 +1,18 @@
-package app
+// Package handler provides http handlers for the service.
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/katiasuya/audio-conversion-service/internal/web"
 )
 
 type audio struct {
 	Name   string `json:"name"`
 	Format string `json:"format"`
 	File   string `json:"file"`
-}
-
-type convertResponse struct {
-	ID string `json:"id"`
 }
 
 func (a *audio) validate() error {
@@ -27,33 +25,37 @@ func audioExists(id string) error {
 	return nil
 }
 
-func handlerConvert(w http.ResponseWriter, r *http.Request) {
+// Convert implements audio conversion.
+func Convert(w http.ResponseWriter, r *http.Request) {
 	var a audio
 	err := json.NewDecoder(r.Body).Decode(&a)
 	defer r.Body.Close()
 	if err != nil {
-		respondErr(w, http.StatusBadRequest, err)
-		w.Write([]byte("aaaa"))
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := a.validate(); err != nil {
-		respondErr(w, http.StatusBadRequest, err)
+		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	convertResp := convertResponse{
+	type response struct {
+		ID string `json:"id"`
+	}
+	convertResp := response{
 		ID: "1fa85f64-5717-4562-b3fc-2c963f66afa5",
 	}
-	respond(w, http.StatusCreated, convertResp)
+	web.Respond(w, http.StatusCreated, convertResp)
 }
 
-func handlerDownload(w http.ResponseWriter, r *http.Request) {
+// Download implements audio downloading.
+func Download(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
 	if err := audioExists(id); err != nil {
-		respondErr(w, http.StatusNotFound, err)
+		web.RespondErr(w, http.StatusNotFound, err)
 		return
 	}
 
@@ -62,5 +64,5 @@ func handlerDownload(w http.ResponseWriter, r *http.Request) {
 		Format: "WAV",
 		File:   "euphoria.wav",
 	}
-	respond(w, http.StatusOK, audioResp)
+	web.Respond(w, http.StatusOK, audioResp)
 }
