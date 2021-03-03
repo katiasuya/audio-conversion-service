@@ -4,7 +4,6 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/katiasuya/audio-conversion-service/internal/web"
 )
@@ -34,13 +33,12 @@ func Convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileParts := strings.Split(header.Filename, ".")
-	name := fileParts[0]
+	name := header.Filename
 	if err := validateName(name); err != nil {
 		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
-	format := fileParts[1]
+	format := header.Header.Get("Content-type")
 	if err := validateFormat(format, targetFormat); err != nil {
 		web.RespondErr(w, http.StatusBadRequest, err)
 		return
