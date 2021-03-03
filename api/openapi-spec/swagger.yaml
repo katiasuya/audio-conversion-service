@@ -81,10 +81,7 @@ paths:
       tags: 
         - Requests
       requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Audio'
+          $ref: '#/components/requestBodies/ConversionRequest'
       responses:
         '201':
           description: The request has been created successfully
@@ -166,7 +163,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'     
 
 components:   
-  schemas:    
+  schemas:  
     Audio:
       type: object
       properties:
@@ -191,7 +188,7 @@ components:
         target_id:
           type: string
           format: uuid  
-          target_format:
+        target_format:
           $ref: '#/components/schemas/Format'
         created:
           type: string
@@ -241,7 +238,22 @@ components:
           example:
             username: AudioUser
             password: qwerty1234
-
+    ConversionRequest:
+      description: A JSON object containing file and target format
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+              target_format:
+                $ref: '#/components/schemas/Format'
+          example:
+            file: some binary sequence
+            target_format: WAV
   responses:
     NotFound:
       description: The specified resource was not found
