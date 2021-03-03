@@ -8,7 +8,7 @@ import (
 
 // ShowHistory shows request history.
 func ShowHistory(w http.ResponseWriter, r *http.Request) {
-	type response struct {
+	type historyResponse struct {
 		ID             string `json:"ID"`
 		OriginalID     string `json:"originalID"`
 		OriginalFormat string `json:"originalFormat"`
@@ -18,7 +18,7 @@ func ShowHistory(w http.ResponseWriter, r *http.Request) {
 		Updated        string `json:"updated"`
 		Status         string `json:"status"`
 	}
-	historyResp := []response{
+	resp := []historyResponse{
 		{
 			ID:             "1fa85f64-5717-4562-b3fc-2c963f66afa5",
 			OriginalID:     "2fa85f64-5717-4562-b3fc-2c963f66afa5",
@@ -30,5 +30,5 @@ func ShowHistory(w http.ResponseWriter, r *http.Request) {
 			Status:         "done",
 		},
 	}
-	web.Respond(w, http.StatusOK, historyResp)
+	web.Respond(w, http.StatusOK, resp)
 }
