@@ -21,7 +21,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'    
         '500':    
           $ref: '#/components/responses/InternalServerError'
-  /user/singup:
+  /user/signup:
     post:
       summary: Create a user
       tags: 
@@ -65,6 +65,10 @@ paths:
                   token:
                     type: string
                     format: JWT
+              example: 
+                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+                SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -77,10 +81,7 @@ paths:
       tags: 
         - Requests
       requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Audio'
+          $ref: '#/components/requestBodies/ConversionRequest'
       responses:
         '201':
           description: The request has been created successfully
@@ -120,7 +121,8 @@ paths:
                 - request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
                   original_id: '4fa85f64-5717-4562-b3fc-2c963f66afa5'
                   original_format: WAV
-                  converted_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  target_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
+                  target_format: MP3
                   created: 2020-02-20 T 11:32:28 Z
                   updated: 2020-02-20 T 13:27:03 Z 
                   status: done
@@ -161,7 +163,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'     
 
 components:   
-  schemas:    
+  schemas:  
     Audio:
       type: object
       properties:
@@ -183,9 +185,11 @@ components:
           format: uuid
         original_format:
           $ref: '#/components/schemas/Format'
-        converted_id:
+        target_id:
           type: string
           format: uuid  
+        target_format:
+          $ref: '#/components/schemas/Format'
         created:
           type: string
           format: date-time
@@ -234,7 +238,22 @@ components:
           example:
             username: AudioUser
             password: qwerty1234
-
+    ConversionRequest:
+      description: A JSON object containing file and target format
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+              target_format:
+                $ref: '#/components/schemas/Format'
+          example:
+            file: some binary sequence
+            target_format: WAV
   responses:
     NotFound:
       description: The specified resource was not found
