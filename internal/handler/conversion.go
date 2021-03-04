@@ -13,8 +13,8 @@ func validateName(name string) error {
 	return nil
 }
 
-func validateFormat(format string, targetFormat string) error {
-	//return errors.New("invalid format")
+func validateFormats(sourceFormat string, targetFormat string) error {
+	//return errors.New("invalid source/target format")
 	return nil
 }
 
@@ -27,9 +27,10 @@ func Convert(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	sourceFormat := r.FormValue("sourceFormat")
 	targetFormat := r.FormValue("targetFormat")
-	if targetFormat == "" {
-		web.RespondErr(w, http.StatusBadRequest, errors.New("format is missing"))
+	if sourceFormat == "" || targetFormat == "" {
+		web.RespondErr(w, http.StatusBadRequest, errors.New("source/target format is missing"))
 		return
 	}
 
@@ -38,8 +39,8 @@ func Convert(w http.ResponseWriter, r *http.Request) {
 		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
-	format := header.Header.Get("Content-type")
-	if err := validateFormat(format, targetFormat); err != nil {
+
+	if err := validateFormats(sourceFormat, targetFormat); err != nil {
 		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}

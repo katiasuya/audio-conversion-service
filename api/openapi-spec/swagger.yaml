@@ -249,10 +249,13 @@ components:
               file:
                 type: string
                 format: binary
+              source_format:
+                $ref: '#/components/schemas/Format'
               target_format:
                 $ref: '#/components/schemas/Format'
           example:
             file: some binary sequence
+            source_format: MP3
             target_format: WAV
   responses:
     NotFound:
