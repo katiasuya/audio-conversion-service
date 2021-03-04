@@ -27,7 +27,7 @@ func main() {
 }
 
 func loadConfig(c *config) error {
-	if err := godotenv.Load("../db.env"); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		return err
 	}
 	return envconfig.Process("Audio-converter", c)
