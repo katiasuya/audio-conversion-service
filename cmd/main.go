@@ -22,5 +22,5 @@ func main() {
 	}
 	defer db.Close()
 
-	log.Fatal(app.Run())
+	log.Fatal(app.Run(db))
 }
