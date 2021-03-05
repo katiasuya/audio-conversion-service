@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/web"
+	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
 
 type userHandler struct {
@@ -28,10 +29,18 @@ func (uh *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := uh.db.InsertUser(&u); err != nil {
+	var err error
+	u.Password, err = hash.HashPassword(u.Password)
+	if err != nil {
 		web.RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
+
+	if err := uh.db.InsertUser(&u); err != nil {
+		web.RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	u.Password = ""
 
 	type signupResponse struct {
 		ID string `json:"id"`
@@ -51,7 +60,13 @@ func (uh *userHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if !uh.db.ComparePasswords(&u) {
+	hashedPwd, err := uh.db.GetPassword(&u)
+	if err != nil {
+		web.RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if !hash.CheckPasswordHash(u.Password, hashedPwd) {
 		web.RespondErr(w, http.StatusUnauthorized, errors.New("wrong password"))
 		return
 	}

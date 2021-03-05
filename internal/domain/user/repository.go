@@ -2,9 +2,6 @@ package user
 
 import (
 	"database/sql"
-	"log"
-
-	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
 
 // DataBase represents the database where the queries for users will be sent to.
@@ -14,32 +11,19 @@ type DataBase struct {
 
 // InsertUser inserts the user into users table.
 func (db *DataBase) InsertUser(u *User) (err error) {
-	u.Password, err = hash.HashPassword(u.Password)
+	const insertUserQuery = `INSERT INTO converter."user" (username, password) VALUES ($1, $2)`
+	_, err = db.dbase.Exec(insertUserQuery, u.Username, u.Password)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.dbase.Exec(`INSERT INTO converter."user" (username, password) VALUES ($1, $2)`, u.Username, u.Password)
-	if err != nil {
-		return err
-	}
-
-	u.Password = ""
 	return nil
 }
 
-// ComparePasswords compares entered password with a database hashed password of a user.
-func (db *DataBase) ComparePasswords(u *User) bool {
+// GetPassword retrieves the database hashed password of a user.
+func (db *DataBase) GetPassword(u *User) (string, error) {
 	var password string
-	row := db.dbase.QueryRow(`SELECT password FROM converter."user" WHERE username=$1;`, u.Username)
-	switch err := row.Scan(&password); err {
-	case sql.ErrNoRows:
-		return false
-	case nil:
-		return hash.CheckPasswordHash(u.Password, password)
-	default:
-		log.Fatal(err)
-	}
-
-	return false
+	const getPasswordByUsername = `SELECT password FROM converter."user" WHERE username=$1;`
+	err := db.dbase.QueryRow(getPasswordByUsername, u.Username).Scan(&password)
+	return password, err
 }
