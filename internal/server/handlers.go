@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
@@ -25,6 +26,7 @@ func New(repo *repository.Repository) *Server {
 func (s *Server) RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
+	r.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 }
 
 // SignUp implements user's signing up.
@@ -103,4 +105,38 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Respond(w, http.StatusCreated, resp)
+}
+
+// ConversionRequest creates a request for audio conversion.
+func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		RespondErr(w, http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	name := header.Filename
+	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
+	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
+
+	if err := ValidateRequest(name, sourceFormat, targetFormat); err != nil {
+		RespondErr(w, http.StatusBadRequest, err)
+		return
+	}
+
+	requestID, err := s.repo.MakeRequest(name, sourceFormat, targetFormat, "some location", "992dee5c-b4e3-49f8-9d4c-8903fa2284c9")
+	if err != nil {
+		RespondErr(w, http.StatusBadRequest, err)
+		return
+	}
+
+	type conversionResponse struct {
+		ID string `json:"id"`
+	}
+	convertResp := conversionResponse{
+		ID: requestID,
+	}
+
+	Respond(w, http.StatusCreated, convertResp)
 }

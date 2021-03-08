@@ -46,3 +46,16 @@ func (r *Repository) GetUserPassword(username string) (string, error) {
 
 	return password, err
 }
+
+// MakeRequest retrieves the database hashed password of a user.
+func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, userID string) (string, error) {
+	var requestID string
+	const makeConversionRequest = `WITH audio_id AS (INSERT INTO converter.audio (name, format, location) VALUES
+	($1, $2, $3) RETURNING id)
+	INSERT INTO converter.request (user_id, source_id, source_format, target_id, target_format, status)
+	SELECT $4, id, $2, NULL, $5, 'queued'
+	FROM audio_id RETURNING id;`
+
+	err := r.db.QueryRow(makeConversionRequest, name, sourceFormat, location, userID, targetFormat).Scan(&requestID)
+	return requestID, err
+}
