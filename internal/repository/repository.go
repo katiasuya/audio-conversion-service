@@ -47,7 +47,7 @@ func (r *Repository) GetUserPassword(username string) (string, error) {
 	return password, err
 }
 
-// MakeRequest retrieves the database hashed password of a user.
+// MakeRequest creates the conversion request and returns its id.
 func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, userID string) (string, error) {
 	var requestID string
 	const makeConversionRequest = `WITH audio_id AS (INSERT INTO converter.audio (name, format, location) VALUES

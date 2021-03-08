@@ -74,6 +74,7 @@ func validateChars(str string) error {
 	return nil
 }
 
+// validateChars checks whether the given format is present in formats slice.
 func contains(format string, formats []string) bool {
 	for _, f := range formats {
 		if format == f {
