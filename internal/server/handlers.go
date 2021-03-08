@@ -21,6 +21,12 @@ func New(repo *repository.Repository) *Server {
 	return &Server{repo: repo}
 }
 
+// RegisterRoutes registers application rotes.
+func (s *Server) RegisterRoutes(r *mux.Router) {
+	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
+	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
+}
+
 // SignUp implements user's signing up.
 func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	type signupRequest struct {
@@ -50,15 +56,17 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.repo.InsertUser(sr.Username, sr.Password); err != nil {
+	userID, err := s.repo.InsertUser(sr.Username, sr.Password)
+	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 	sr.Password = ""
 
 	resp := signupResponse{
-		ID: "1fa85f64-5717-4562-b3fc-2c963f66afa5",
+		ID: userID,
 	}
+
 	Respond(w, http.StatusCreated, resp)
 }
 
@@ -93,12 +101,6 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 	resp := loginResponse{
 		Token: "eyJhbGciOiJIUzI1NiIs...",
 	}
+
 	Respond(w, http.StatusCreated, resp)
-
-}
-
-// RegisterRoutes registers application rotes.
-func (s *Server) RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
-	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
 }

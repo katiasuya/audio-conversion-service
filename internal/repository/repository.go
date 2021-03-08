@@ -24,14 +24,15 @@ func New(db *sql.DB) *Repository {
 }
 
 // InsertUser inserts the user into users table.
-func (r *Repository) InsertUser(username, password string) (err error) {
-	const insertUserQuery = `INSERT INTO converter."user" (username, password) VALUES ($1, $2)`
-	_, err = r.db.Exec(insertUserQuery, username, password)
+func (r *Repository) InsertUser(username, password string) (string, error) {
+	var userID string
+	const insertUserQuery = `INSERT INTO converter."user" (username, password) VALUES ($1, $2) RETURNING id`
+	err := r.db.QueryRow(insertUserQuery, username, password).Scan(&userID)
 	if err, ok := err.(*pq.Error); ok && err.Code == codeUniqueViolation {
-		return errors.New("the user with the given username already exists")
+		return "", errors.New("the user with the given username already exists")
 	}
 
-	return err
+	return userID, err
 }
 
 // GetUserPassword retrieves the database hashed password of a user.
