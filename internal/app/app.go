@@ -10,7 +10,7 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/server"
 )
 
-//Run runs the application.
+// Run runs the application service.
 func Run() error {
 	var conf config.Config
 	err := conf.Load()
