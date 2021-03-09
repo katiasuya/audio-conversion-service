@@ -14,17 +14,6 @@ import (
 
 var errInvalidUsernameOrPassword = errors.New("invalid username or password")
 
-// HistoryResponse represents a history response.
-type HistoryResponse struct {
-	ID           string `json:"ID"`
-	AudioName    string `json:"audioName"`
-	SourceFormat string `json:"sourceFormat"`
-	TargetFormat string `json:"targetFormat"`
-	Created      string `json:"created"`
-	Updated      string `json:"updated"`
-	Status       string `json:"status"`
-}
-
 // Server represents application server.
 type Server struct {
 	repo *repository.Repository
