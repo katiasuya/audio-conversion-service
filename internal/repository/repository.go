@@ -4,6 +4,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/lib/pq"
 )
@@ -16,6 +17,17 @@ var (
 	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
 )
 
+// HistoryResponse represents a history response.
+type HistoryResponse struct {
+	ID           string    `json:"ID"`
+	AudioName    string    `json:"audioName"`
+	SourceFormat string    `json:"sourceFormat"`
+	TargetFormat string    `json:"targetFormat"`
+	Created      time.Time `json:"created"`
+	Updated      time.Time `json:"updated"`
+	Status       string    `json:"status"`
+}
+
 // Repository represents the database that the queries will be sent to
 // and provides methods to communicate with database.
 type Repository struct {
@@ -27,17 +39,6 @@ func New(db *sql.DB) *Repository {
 	return &Repository{
 		db: db,
 	}
-}
-
-// HistoryResponse represents a history response.
-type HistoryResponse struct {
-	ID           string `json:"ID"`
-	AudioName    string `json:"audioName"`
-	SourceFormat string `json:"sourceFormat"`
-	TargetFormat string `json:"targetFormat"`
-	Created      string `json:"created"`
-	Updated      string `json:"updated"`
-	Status       string `json:"status"`
 }
 
 // InsertUser inserts the user into users table.
