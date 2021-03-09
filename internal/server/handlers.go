@@ -12,6 +12,8 @@ import (
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
 
+var errInvalidUsernameOrPassword = errors.New("invalid username or password")
+
 // Server represents application server.
 type Server struct {
 	repo *repository.Repository
@@ -29,43 +31,52 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 }
 
+// ShowDoc shows service documentation.
+func (s *Server) ShowDoc(w http.ResponseWriter, r *http.Request) {
+	Respond(w, http.StatusOK, "Showing documentation")
+}
+
 // SignUp implements user's signing up.
 func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
-	type signupRequest struct {
+	type request struct {
 		Username string
 		Password string
 	}
-	type signupResponse struct {
+	type response struct {
 		ID string `json:"id"`
 	}
 
-	var sr signupRequest
-	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
+	var req request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 	defer r.Body.Close()
 
-	if err := ValidateUserCredentials(sr.Username, sr.Password); err != nil {
+	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	var err error
-	sr.Password, err = hash.HashPassword(sr.Password)
-	if err != nil {
-		RespondErr(w, http.StatusBadRequest, err)
-		return
-	}
-
-	userID, err := s.repo.InsertUser(sr.Username, sr.Password)
+	req.Password, err = hash.HashPassword(req.Password)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-	sr.Password = ""
 
-	resp := signupResponse{
+	userID, err := s.repo.InsertUser(req.Username, req.Password)
+	if err == repository.ErrUserAlreadyExists {
+		RespondErr(w, http.StatusConflict, err)
+		return
+	}
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	req.Password = ""
+
+	resp := response{
 		ID: userID,
 	}
 
@@ -74,33 +85,37 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 
 // LogIn implements user's logging in.
 func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
-	type loginRequest struct {
+	type request struct {
 		Username string
 		Password string
 	}
-	type loginResponse struct {
+	type response struct {
 		Token string `json:"token"`
 	}
 
-	var lr loginRequest
-	if err := json.NewDecoder(r.Body).Decode(&lr); err != nil {
+	var req request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondErr(w, http.StatusUnauthorized, err)
 		return
 	}
 	defer r.Body.Close()
 
-	hashedPwd, err := s.repo.GetUserPassword(lr.Username)
+	hashedPwd, err := s.repo.GetUserPassword(req.Username)
+	if err == repository.ErrNoSuchUser {
+		RespondErr(w, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
-		RespondErr(w, http.StatusUnauthorized, err)
+		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	if !hash.CheckPasswordHash(lr.Password, hashedPwd) {
-		RespondErr(w, http.StatusUnauthorized, errors.New("wrong password"))
+	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
+		RespondErr(w, http.StatusUnauthorized, errInvalidUsernameOrPassword)
 		return
 	}
 
-	resp := loginResponse{
+	resp := response{
 		Token: "eyJhbGciOiJIUzI1NiIs...",
 	}
 
@@ -127,14 +142,14 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 	requestID, err := s.repo.MakeRequest(name, sourceFormat, targetFormat, "some location", "992dee5c-b4e3-49f8-9d4c-8903fa2284c9")
 	if err != nil {
-		RespondErr(w, http.StatusBadRequest, err)
+		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	type conversionResponse struct {
+	type response struct {
 		ID string `json:"id"`
 	}
-	convertResp := conversionResponse{
+	convertResp := response{
 		ID: requestID,
 	}
 

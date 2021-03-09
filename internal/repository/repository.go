@@ -10,6 +10,11 @@ import (
 
 const codeUniqueViolation = "23505"
 
+var (
+	ErrNoSuchUser        = errors.New("the user with the given username does not exist")
+	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
+)
+
 // Repository represents the database that the queries will be sent to
 // and provides methods to communicate with database.
 type Repository struct {
@@ -23,13 +28,24 @@ func New(db *sql.DB) *Repository {
 	}
 }
 
+// HistoryResponse represents a history response.
+type HistoryResponse struct {
+	ID           string `json:"ID"`
+	AudioName    string `json:"audioName"`
+	SourceFormat string `json:"sourceFormat"`
+	TargetFormat string `json:"targetFormat"`
+	Created      string `json:"created"`
+	Updated      string `json:"updated"`
+	Status       string `json:"status"`
+}
+
 // InsertUser inserts the user into users table.
 func (r *Repository) InsertUser(username, password string) (string, error) {
 	var userID string
 	const insertUserQuery = `INSERT INTO converter."user" (username, password) VALUES ($1, $2) RETURNING id`
 	err := r.db.QueryRow(insertUserQuery, username, password).Scan(&userID)
 	if err, ok := err.(*pq.Error); ok && err.Code == codeUniqueViolation {
-		return "", errors.New("the user with the given username already exists")
+		return "", ErrUserAlreadyExists
 	}
 
 	return userID, err
@@ -41,7 +57,7 @@ func (r *Repository) GetUserPassword(username string) (string, error) {
 	const getPasswordByUsername = `SELECT password FROM converter."user" WHERE username=$1;`
 	err := r.db.QueryRow(getPasswordByUsername, username).Scan(&password)
 	if err == sql.ErrNoRows {
-		return "", errors.New("the user with the given username does not exist")
+		return "", ErrNoSuchUser
 	}
 
 	return password, err
