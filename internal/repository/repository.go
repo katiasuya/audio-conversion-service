@@ -11,8 +11,9 @@ import (
 
 const codeUniqueViolation = "23505"
 
-//Errors represent errors during sign up or log in.
+//Errors represent database errors.
 var (
+	ErrNoSuchAudio       = errors.New("the audio with the given id does not exist")
 	ErrNoSuchUser        = errors.New("the user with the given username does not exist")
 	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
 )
@@ -26,6 +27,13 @@ type HistoryResponse struct {
 	Created      time.Time `json:"created"`
 	Updated      time.Time `json:"updated"`
 	Status       string    `json:"status"`
+}
+
+// DownloadResponse represents downloaded audio information.
+type DownloadResponse struct {
+	Name     string `json:"name"`
+	Format   string `json:"format"`
+	Location string `json:"location"`
 }
 
 // Repository represents the database that the queries will be sent to
@@ -101,4 +109,17 @@ func (r *Repository) GetRequestHistory(userID string) ([]HistoryResponse, error)
 	}
 	err = rows.Err()
 	return hrs, err
+}
+
+// GetAudioByID gets the information about the audio with the given id.
+func (r *Repository) GetAudioByID(id string) (DownloadResponse, error) {
+	var name, format, location string
+	const getAudioByID = `SELECT a.name, a.format, a.location FROM converter.audio  a WHERE id=$1;`
+
+	err := r.db.QueryRow(getAudioByID, id).Scan(&name, &format, &location)
+	if err == sql.ErrNoRows {
+		return DownloadResponse{}, ErrNoSuchAudio
+	}
+
+	return DownloadResponse{Name: name, Format: format, Location: location}, err
 }

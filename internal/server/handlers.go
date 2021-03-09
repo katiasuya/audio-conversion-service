@@ -4,7 +4,9 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -31,6 +33,7 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
 	r.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 	r.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
+	r.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
@@ -142,7 +145,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestID, err := s.repo.MakeRequest(name, sourceFormat, targetFormat, "some location", "992dee5c-b4e3-49f8-9d4c-8903fa2284c9")
+	requestID, err := s.repo.MakeRequest(name, sourceFormat, targetFormat, "\\", "992dee5c-b4e3-49f8-9d4c-8903fa2284c9")
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
@@ -163,6 +166,45 @@ func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
 	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
 
 	resp, err := s.repo.GetRequestHistory(userID)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	Respond(w, http.StatusOK, resp)
+}
+
+// Download implements audio downloading.
+func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	audioInfo, err := s.repo.GetAudioByID(id)
+	if err == repository.ErrNoSuchAudio {
+		RespondErr(w, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	filePath := "some path" + audioInfo.Name
+	resp, err := http.Get(audioInfo.Location)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
