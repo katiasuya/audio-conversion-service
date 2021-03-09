@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,12 +14,12 @@ func Run() error {
 	var conf config.Config
 	err := conf.Load()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer db.Close()
 

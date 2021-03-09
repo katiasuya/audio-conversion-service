@@ -17,9 +17,5 @@ func NewPostgresDB(c *config.Config) (*sql.DB, error) {
 	}
 
 	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	return db, err
 }
