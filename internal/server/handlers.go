@@ -14,6 +14,17 @@ import (
 
 var errInvalidUsernameOrPassword = errors.New("invalid username or password")
 
+// HistoryResponse represents a history response.
+type HistoryResponse struct {
+	ID           string `json:"ID"`
+	AudioName    string `json:"audioName"`
+	SourceFormat string `json:"sourceFormat"`
+	TargetFormat string `json:"targetFormat"`
+	Created      string `json:"created"`
+	Updated      string `json:"updated"`
+	Status       string `json:"status"`
+}
+
 // Server represents application server.
 type Server struct {
 	repo *repository.Repository
@@ -26,9 +37,11 @@ func New(repo *repository.Repository) *Server {
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
+	r.HandleFunc("/docs", s.ShowDoc).Methods("GET")
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
 	r.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
+	r.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
@@ -154,4 +167,17 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Respond(w, http.StatusCreated, convertResp)
+}
+
+// RequestHistory shows request history of a user.
+func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
+	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+
+	resp, err := s.repo.GetRequestHistory(userID)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	Respond(w, http.StatusOK, resp)
 }

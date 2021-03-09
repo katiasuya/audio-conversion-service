@@ -10,6 +10,7 @@ import (
 
 const codeUniqueViolation = "23505"
 
+//Errors represent errors during sign up or log in.
 var (
 	ErrNoSuchUser        = errors.New("the user with the given username does not exist")
 	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
@@ -74,4 +75,29 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 
 	err := r.db.QueryRow(makeConversionRequest, name, sourceFormat, location, userID, targetFormat).Scan(&requestID)
 	return requestID, err
+}
+
+// GetRequestHistory gets the information about user's requests.
+func (r *Repository) GetRequestHistory(userID string) ([]HistoryResponse, error) {
+	const getUserRequests = `SELECT r.id, a.name, source_format, target_format, r.created, r.updated, r.status
+    FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
+    WHERE r.user_id=$1;`
+
+	rows, err := r.db.Query(getUserRequests, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hr HistoryResponse
+	var hrs []HistoryResponse
+	for rows.Next() {
+		err = rows.Scan(&hr.ID, &hr.AudioName, &hr.SourceFormat, &hr.TargetFormat, &hr.Created, &hr.Updated, &hr.Status)
+		if err != nil {
+			return nil, err
+		}
+		hrs = append(hrs, hr)
+	}
+	err = rows.Err()
+	return hrs, err
 }

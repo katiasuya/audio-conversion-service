@@ -38,7 +38,7 @@
 
    -- to get the request history 
    
-    SELECT a.name source, r.created, r.updated, r.status
+    SELECT r.id, a.name, source_format, r.created, r.updated, r.status
     FROM converter.request r
     JOIN converter.audio a
     ON a.id = r.source_id
@@ -46,7 +46,7 @@
 
    -- to get the request info of an audio
 
-    SELECT a.name source, r.created, r.updated, r.status
+    SELECT a.name source_format, r.created, r.updated, r.status
     FROM converter.request r
     JOIN converter.audio a
     ON a.id = r.source_id
