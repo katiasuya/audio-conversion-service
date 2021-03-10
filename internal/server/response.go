@@ -1,5 +1,4 @@
-// Package web provides web response functions.
-package web
+package server
 
 import (
 	"encoding/json"

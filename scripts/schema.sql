@@ -55,17 +55,14 @@ updated TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL
 CREATE TABLE IF NOT EXISTS converter.request (
 id UUID  DEFAULT gen_random_uuid() PRIMARY KEY,
 user_id UUID NOT NULL,
-original_id UUID NOT NULL,
-converted_id UUID,
+source_id UUID NOT NULL,
+source_format format NOT NULL,
+target_id UUID,
+target_format format NOT NULL,
 created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL,
 updated TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW() NOT NULL,
 status status NOT NULL,
 FOREIGN KEY (user_id) REFERENCES converter."user" (id) ON DELETE CASCADE,
-FOREIGN KEY (original_id) REFERENCES converter.audio (id) ON DELETE CASCADE,
-FOREIGN KEY (converted_id) REFERENCES converter.audio (id) ON DELETE CASCADE
+FOREIGN KEY (source_id) REFERENCES converter.audio (id) ON DELETE CASCADE,
+FOREIGN KEY (target_id) REFERENCES converter.audio (id) ON DELETE CASCADE
 );
-
-
-
-
-

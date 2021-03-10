@@ -116,16 +116,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ConversionRequest'
-              example:
-                - request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
-                  original_id: '4fa85f64-5717-4562-b3fc-2c963f66afa5'
-                  original_format: WAV
-                  target_id: '5fa85f64-5717-4562-b3fc-2c963f66afa5'
-                  target_format: MP3
-                  created: 2020-02-20 T 11:32:28 Z
-                  updated: 2020-02-20 T 13:27:03 Z 
-                  status: done
+                  $ref: '#/components/schemas/HistoryResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -180,10 +171,10 @@ components:
         request_id:
           type: string
           format: uuid
-        original_id:
+        source_id:
           type: string
           format: uuid
-        original_format:
+        source_format:
           $ref: '#/components/schemas/Format'
         target_id:
           type: string
@@ -198,6 +189,34 @@ components:
           format: date-time
         status:
           $ref: '#/components/schemas/Status'
+    HistoryResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        audio_name:
+          type: string
+        source_format:
+          $ref: '#/components/schemas/Format'
+        target_format:
+          $ref: '#/components/schemas/Format'
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/Status'
+      example:
+          request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
+          audio_name: 'Euphoria.wav'
+          source_format: WAV
+          target_format: MP3
+          created: 2020-02-20 T 11:32:28 Z
+          updated: 2020-02-20 T 13:27:03 Z 
+          status: done
     Format: 
         type: string
         enum: [MP3, WAV]
@@ -249,10 +268,13 @@ components:
               file:
                 type: string
                 format: binary
+              source_format:
+                $ref: '#/components/schemas/Format'
               target_format:
                 $ref: '#/components/schemas/Format'
           example:
             file: some binary sequence
+            source_format: MP3
             target_format: WAV
   responses:
     NotFound:

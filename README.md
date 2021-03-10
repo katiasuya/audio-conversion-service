@@ -16,4 +16,14 @@ To create a PostgreSQL user, database, schema and tables needed for the service,
 * set execute permission on the script as `chmod +x create_db.sh`;
 * run the script as `./create_db.sh` and enter postgres password and user's name and password when asked.
 
+## Configuration
 
+To set the configuration parameters for database connection, create a .env file in the root of the repository
+and set the following environment variables:
+
+AUDIO-CONVERTER_HOST=your_host(default localhost)
+AUDIO-CONVERTER_PORT=your_port(default 5432)
+AUDIO-CONVERTER_USERNAME=your_username
+AUDIO-CONVERTER_PASSWORD=your_password
+AUDIO-CONVERTER_DBNAME=audioconverter
+AUDIO-CONVERTER_SSLMODE=disable
