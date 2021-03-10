@@ -4,8 +4,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"time"
 
+	"github.com/katiasuya/audio-conversion-service/internal/server/entity"
 	"github.com/lib/pq"
 )
 
@@ -17,24 +17,6 @@ var (
 	ErrNoSuchUser        = errors.New("the user with the given username does not exist")
 	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
 )
-
-// HistoryResponse represents a history response.
-type HistoryResponse struct {
-	ID           string    `json:"ID"`
-	AudioName    string    `json:"audioName"`
-	SourceFormat string    `json:"sourceFormat"`
-	TargetFormat string    `json:"targetFormat"`
-	Created      time.Time `json:"created"`
-	Updated      time.Time `json:"updated"`
-	Status       string    `json:"status"`
-}
-
-// DownloadResponse represents downloaded audio information.
-type DownloadResponse struct {
-	Name     string `json:"name"`
-	Format   string `json:"format"`
-	Location string `json:"location"`
-}
 
 // Repository represents the database that the queries will be sent to
 // and provides methods to communicate with database.
@@ -87,7 +69,7 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 }
 
 // GetRequestHistory gets the information about user's requests.
-func (r *Repository) GetRequestHistory(userID string) ([]HistoryResponse, error) {
+func (r *Repository) GetRequestHistory(userID string) ([]entity.RequestInfo, error) {
 	const getUserRequests = `SELECT r.id, a.name, source_format, target_format, r.created, r.updated, r.status
     FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
     WHERE r.user_id=$1;`
@@ -98,28 +80,28 @@ func (r *Repository) GetRequestHistory(userID string) ([]HistoryResponse, error)
 	}
 	defer rows.Close()
 
-	var hr HistoryResponse
-	var hrs []HistoryResponse
+	var req entity.RequestInfo
+	var reqs []entity.RequestInfo
 	for rows.Next() {
-		err = rows.Scan(&hr.ID, &hr.AudioName, &hr.SourceFormat, &hr.TargetFormat, &hr.Created, &hr.Updated, &hr.Status)
+		err = rows.Scan(&req.ID, &req.AudioName, &req.SourceFormat, &req.TargetFormat, &req.Created, &req.Updated, &req.Status)
 		if err != nil {
 			return nil, err
 		}
-		hrs = append(hrs, hr)
+		reqs = append(reqs, req)
 	}
 
-	return hrs, rows.Err()
+	return reqs, rows.Err()
 }
 
 // GetAudioByID gets the information about the audio with the given id.
-func (r *Repository) GetAudioByID(id string) (DownloadResponse, error) {
+func (r *Repository) GetAudioByID(id string) (entity.AudioInfo, error) {
 	var name, format, location string
 	const getAudioByID = `SELECT a.name, a.format, a.location FROM converter.audio  a WHERE id=$1;`
 
 	err := r.db.QueryRow(getAudioByID, id).Scan(&name, &format, &location)
 	if err == sql.ErrNoRows {
-		return DownloadResponse{}, ErrNoSuchAudio
+		return entity.AudioInfo{}, ErrNoSuchAudio
 	}
 
-	return DownloadResponse{Name: name, Format: format, Location: location}, err
+	return entity.AudioInfo{Name: name, Format: format, Location: location}, err
 }

@@ -63,14 +63,13 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
-	req.Password, err = hash.HashPassword(req.Password)
+	hash, err := hash.HashPassword(req.Password)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	userID, err := s.repo.InsertUser(req.Username, req.Password)
+	userID, err := s.repo.InsertUser(req.Username, hash)
 	if err == repository.ErrUserAlreadyExists {
 		RespondErr(w, http.StatusConflict, err)
 		return
@@ -79,7 +78,6 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-	req.Password = ""
 
 	resp := response{
 		ID: userID,
