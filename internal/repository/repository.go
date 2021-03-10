@@ -107,8 +107,8 @@ func (r *Repository) GetRequestHistory(userID string) ([]HistoryResponse, error)
 		}
 		hrs = append(hrs, hr)
 	}
-	err = rows.Err()
-	return hrs, err
+
+	return hrs, rows.Err()
 }
 
 // GetAudioByID gets the information about the audio with the given id.

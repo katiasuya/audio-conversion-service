@@ -107,7 +107,7 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	hashedPwd, err := s.repo.GetUserPassword(req.Username)
 	if err == repository.ErrNoSuchUser {
-		RespondErr(w, http.StatusNotFound, err)
+		RespondErr(w, http.StatusUnauthorized, err)
 		return
 	}
 	if err != nil {
