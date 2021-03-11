@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
+	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
 
@@ -18,12 +19,16 @@ var errInvalidUsernameOrPassword = errors.New("invalid username or password")
 
 // Server represents application server.
 type Server struct {
-	repo *repository.Repository
+	repo    *repository.Repository
+	storage *storage.Storage
 }
 
 // New creates new application server.
-func New(repo *repository.Repository) *Server {
-	return &Server{repo: repo}
+func New(repo *repository.Repository, storage *storage.Storage) *Server {
+	return &Server{
+		repo:    repo,
+		storage: storage,
+	}
 }
 
 // RegisterRoutes registers application rotes.
@@ -127,23 +132,30 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 
 // ConversionRequest creates a request for audio conversion.
 func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
-	file, header, err := r.FormFile("file")
+	sourceFile, header, err := r.FormFile("file")
 	if err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
-	defer file.Close()
+	defer sourceFile.Close()
 
-	name := header.Filename
+	filename := header.Filename
 	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
 	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
 
-	if err := ValidateRequest(name, sourceFormat, targetFormat); err != nil {
+	if err := ValidateRequest(filename, sourceFormat, targetFormat); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	requestID, err := s.repo.MakeRequest(name, sourceFormat, targetFormat, "\\", "992dee5c-b4e3-49f8-9d4c-8903fa2284c9")
+	fileID, err := s.storage.UploadFile(sourceFile, sourceFormat)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
@@ -187,26 +199,40 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := "some path" + audioInfo.Name
-	resp, err := http.Get(audioInfo.Location)
+	mwriter := multipart.NewWriter(w)
+	w.Header().Set("Content-Type", "audio/mpeg")
+
+	partWriter, err := mwriter.CreateFormField("audioinfo")
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-	defer resp.Body.Close()
-
-	out, err := os.Create(filePath)
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, resp.Body)
+	err = json.NewEncoder(partWriter).Encode(&audioInfo)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	Respond(w, http.StatusOK, resp)
+	filePart, err := mwriter.CreateFormFile("file", audioInfo.Name)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	file, err := s.storage.DownloadFile(audioInfo.Location, audioInfo.Format)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	_, err = io.Copy(filePart, file)
+	if err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := mwriter.Close(); err != nil {
+		RespondErr(w, http.StatusInternalServerError, err)
+		return
+	}
 }
