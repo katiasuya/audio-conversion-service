@@ -200,7 +200,7 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mwriter := multipart.NewWriter(w)
-	w.Header().Set("Content-Type", "audio/mpeg")
+	w.Header().Set("Content-Type", mwriter.FormDataContentType())
 
 	partWriter, err := mwriter.CreateFormField("audioinfo")
 	if err != nil {
@@ -213,19 +213,17 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePart, err := mwriter.CreateFormFile("file", audioInfo.Name)
+	partWriter, err = mwriter.CreateFormFile("file", audioInfo.Name)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-
 	file, err := s.storage.DownloadFile(audioInfo.Location, audioInfo.Format)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	_, err = io.Copy(filePart, file)
+	_, err = io.Copy(partWriter, file)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
