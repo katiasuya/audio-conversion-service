@@ -3,7 +3,6 @@ package storage
 
 import (
 	"io"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 
@@ -23,7 +22,7 @@ func New(path string) *Storage {
 }
 
 // UploadFile stores request file in the storage.
-func (s *Storage) UploadFile(sourceFile multipart.File, format string) (string, error) {
+func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error) {
 	fileID, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
@@ -45,13 +44,8 @@ func (s *Storage) UploadFile(sourceFile multipart.File, format string) (string, 
 }
 
 // DownloadFile downloads the file by its id from the storage.
-func (s *Storage) DownloadFile(fileID, format string) (multipart.File, error) {
+func (s *Storage) DownloadFile(fileID, format string) (io.Reader, error) {
 	fileLocation := filepath.Join(s.Path, fileID+"."+format)
-
-	_, err := os.Stat(fileLocation)
-	if err != nil {
-		return nil, err
-	}
 
 	return os.Open(fileLocation)
 }

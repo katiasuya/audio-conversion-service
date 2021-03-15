@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"strings"
 
@@ -199,37 +198,21 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mwriter := multipart.NewWriter(w)
-	w.Header().Set("Content-Type", mwriter.FormDataContentType())
-
-	partWriter, err := mwriter.CreateFormField("audioinfo")
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-	err = json.NewEncoder(partWriter).Encode(&audioInfo)
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	partWriter, err = mwriter.CreateFormFile("file", audioInfo.Name)
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
 	file, err := s.storage.DownloadFile(audioInfo.Location, audioInfo.Format)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
-	_, err = io.Copy(partWriter, file)
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
 
-	if err := mwriter.Close(); err != nil {
+	header := make([]byte, 512)
+	file.Read(header)
+	FileContentType := http.DetectContentType(header)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name)
+	w.Header().Set("Content-Type", FileContentType)
+
+	_, err = io.Copy(w, file)
+	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
