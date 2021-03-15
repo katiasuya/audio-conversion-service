@@ -1,4 +1,4 @@
-package entity
+package module
 
 import "time"
 

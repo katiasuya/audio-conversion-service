@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/katiasuya/audio-conversion-service/internal/server/entity"
+	"github.com/katiasuya/audio-conversion-service/internal/server/module"
 	"github.com/lib/pq"
 )
 
@@ -69,7 +69,7 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 }
 
 // GetRequestHistory gets the information about user's requests.
-func (r *Repository) GetRequestHistory(userID string) ([]entity.RequestInfo, error) {
+func (r *Repository) GetRequestHistory(userID string) ([]module.RequestInfo, error) {
 	const getUserRequests = `SELECT r.id, a.name, source_format, target_format, r.created, r.updated, r.status
     FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
     WHERE r.user_id=$1;`
@@ -80,8 +80,8 @@ func (r *Repository) GetRequestHistory(userID string) ([]entity.RequestInfo, err
 	}
 	defer rows.Close()
 
-	var req entity.RequestInfo
-	var reqs []entity.RequestInfo
+	var req module.RequestInfo
+	var reqs []module.RequestInfo
 	for rows.Next() {
 		err = rows.Scan(&req.ID, &req.AudioName, &req.SourceFormat, &req.TargetFormat, &req.Created, &req.Updated, &req.Status)
 		if err != nil {
@@ -94,14 +94,14 @@ func (r *Repository) GetRequestHistory(userID string) ([]entity.RequestInfo, err
 }
 
 // GetAudioByID gets the information about the audio with the given id.
-func (r *Repository) GetAudioByID(id string) (entity.AudioInfo, error) {
+func (r *Repository) GetAudioByID(id string) (module.AudioInfo, error) {
 	var name, format, location string
 	const getAudioByID = `SELECT a.name, a.format, a.location FROM converter.audio  a WHERE id=$1;`
 
 	err := r.db.QueryRow(getAudioByID, id).Scan(&name, &format, &location)
 	if err == sql.ErrNoRows {
-		return entity.AudioInfo{}, ErrNoSuchAudio
+		return module.AudioInfo{}, ErrNoSuchAudio
 	}
 
-	return entity.AudioInfo{Name: name, Format: format, Location: location}, err
+	return module.AudioInfo{Name: name, Format: format, Location: location}, err
 }
