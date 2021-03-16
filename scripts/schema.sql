@@ -24,7 +24,7 @@ CREATE SCHEMA IF NOT EXISTS converter;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'format') THEN
-        CREATE TYPE format AS ENUM ('MP3', 'WAV');
+        CREATE TYPE format AS ENUM ('mp3', 'wav');
     END IF;
 END$$;
 

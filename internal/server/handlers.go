@@ -138,11 +138,18 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer sourceFile.Close()
 
+	buff := make([]byte, 512)
+	_, err = sourceFile.Read(buff)
+	if err != nil {
+		RespondErr(w, http.StatusBadRequest, err)
+		return
+	}
+	sourceContentType := http.DetectContentType(buff)
 	filename := header.Filename
-	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
-	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
+	sourceFormat := strings.ToLower(r.FormValue("sourceFormat"))
+	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 
-	if err := ValidateRequest(filename, sourceFormat, targetFormat); err != nil {
+	if err := ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
@@ -204,9 +211,9 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := make([]byte, 512)
-	file.Read(header)
-	FileContentType := http.DetectContentType(header)
+	buff := make([]byte, 512)
+	file.Read(buff)
+	FileContentType := http.DetectContentType(buff)
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name)
 	w.Header().Set("Content-Type", FileContentType)
