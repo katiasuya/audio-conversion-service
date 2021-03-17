@@ -12,6 +12,9 @@ const (
 
 var errInvalidLength = errors.New("invalid length")
 
+// Formats lists all possible audio formats.
+var formats = []string{"MP3", "WAV"}
+
 // ValidateUserCredentials validates user's credentials.
 func ValidateUserCredentials(username, password string) error {
 	if username == "" {
@@ -39,23 +42,23 @@ func ValidateUserCredentials(username, password string) error {
 }
 
 // ValidateRequest validates conversion request body.
-func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string) error {
-	var formats = map[string]string{"mp3": "audio/mpeg", "wav": "audio/wave"}
-
+func ValidateRequest(name, sourceFormat, targetFormat string) error {
 	if sourceFormat == "" {
 		return errors.New("source format is missing")
 	}
 	if targetFormat == "" {
 		return errors.New("target format is missing")
 	}
+
+	if !contains(sourceFormat, formats) {
+		return errors.New("invalid source format: need MP3 or WAV")
+	}
+	if !contains(targetFormat, formats) {
+		return errors.New("invalid target format: need MP3 or WAV")
+	}
+
 	if sourceFormat == targetFormat {
 		return errors.New("source and target formats can't be equal")
-	}
-	if formats[sourceFormat] != sourceContentType {
-		return errors.New("wrong source format for the file")
-	}
-	if _, ok := formats[targetFormat]; !ok {
-		return errors.New("invalid target format: need mp3 or wav")
 	}
 
 	if err := validateChars(name); err != nil {

@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Audio Converter API
-  description: A service that exposes a RESTful API to convert wav to mp3 and vice versa.
+  description: A service that exposes a RESTful API to convert WAV to MP3 and vice versa.
   version: 1.0.0
 servers:
   - url: http://localhost
@@ -202,14 +202,14 @@ components:
       example:
           request_id: '3fa85f64-5717-4562-b3fc-2c963f66afa5'
           audio_name: 'Euphoria.wav'
-          source_format: wav
-          target_format: mp3
+          source_format: WAV
+          target_format: MP3
           created: 2020-02-20 T 11:32:28 Z
           updated: 2020-02-20 T 13:27:03 Z 
           status: done
     Format: 
         type: string
-        enum: [mp3, wav]
+        enum: [MP3, WAV]
     Status:
         type: string
         enum: [queued, processing, done]
@@ -264,8 +264,8 @@ components:
                 $ref: '#/components/schemas/Format'
           example:
             file: some binary sequence
-            source_format: mp3
-            target_format: wav
+            source_format: MP3
+            target_format: WAV
   responses:
     NotFound:
       description: The specified resource was not found

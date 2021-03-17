@@ -13,10 +13,10 @@
    
     WITH audio_id AS (
             INSERT INTO converter.audio (name, format, location) VALUES
-            ('song name', 'mp3', 'location') RETURNING id)
+            ('song name', 'MP3', 'location') RETURNING id)
 
     INSERT INTO converter.request (user_id, source_id, source_format, target_id, target_format, status)
-    SELECT '12feccec-3974-4dc2-ac63-b4838c7bf0eb', id, 'mp3', NULL, 'wav', 'queued'
+    SELECT '12feccec-3974-4dc2-ac63-b4838c7bf0eb', id, 'MP3', NULL, 'WAV', 'queued'
     FROM audio_id;
 
    -- to list all the user's audios
@@ -86,6 +86,6 @@
                              ON u.id = r.user_id 
                              JOIN converter.audio a
                              ON a.id = r.source_id 
-                             WHERE a.format='mp3');
+                             WHERE a.format='MP3');
 
 
