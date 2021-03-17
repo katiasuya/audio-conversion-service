@@ -4,6 +4,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/katiasuya/audio-conversion-service/internal/server/model"
 	"github.com/lib/pq"
@@ -55,6 +56,16 @@ func (r *Repository) GetUserPassword(username string) (string, error) {
 	return password, err
 }
 
+// InsertAudio inserts the audio into audio table.
+func (r *Repository) InsertAudio(name, format, location string) (string, error) {
+	var audioID string
+	const insertAudio = `INSERT INTO converter.audio (name, format, location) VALUES
+	($1, $2, $3) RETURNING id`
+
+	err := r.db.QueryRow(insertAudio, name, format, location).Scan(&audioID)
+	return audioID, err
+}
+
 // MakeRequest creates the conversion request and returns its id.
 func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, userID string) (string, error) {
 	var requestID string
@@ -66,6 +77,15 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 
 	err := r.db.QueryRow(makeConversionRequest, name, sourceFormat, location, userID, targetFormat).Scan(&requestID)
 	return requestID, err
+}
+
+// UpdateRequest updateы the existing conversion request found by its id.
+func (r *Repository) UpdateRequest(requestID, targetID string) error {
+	const updateRequest = `UPDATE converter.request 
+	SET target_id=$2, status='done', updated=$3 WHERE id=$1;`
+
+	err := r.db.QueryRow(updateRequest, requestID, targetID, time.Now())
+	return err.Err()
 }
 
 // GetRequestHistory gets the information about user's requests.
