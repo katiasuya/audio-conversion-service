@@ -141,9 +141,9 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	defer sourceFile.Close()
 
 	sourceContentType := header.Header.Values("Content-type")
-	filename := header.Filename
-	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
-	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
+	sourceFormat := strings.ToLower(r.FormValue("sourceFormat"))
+	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
+	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
 	if err := ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
@@ -156,7 +156,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := "4d3f416b-e44d-41f8-8b4d-bb189657d64b"
+	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
@@ -197,7 +197,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
 
 	resp, err := s.repo.GetRequestHistory(userID)
 	if err != nil {

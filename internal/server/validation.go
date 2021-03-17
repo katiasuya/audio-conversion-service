@@ -12,7 +12,7 @@ const (
 
 var errInvalidLength = errors.New("invalid length")
 
-var formats = map[string]string{"MP3": "audio/mpeg", "WAV": "audio/wave"}
+var formats = map[string]string{"mp3": "audio/mpeg", "wav": "audio/wave"}
 
 // ValidateUserCredentials validates user's credentials.
 func ValidateUserCredentials(username, password string) error {
