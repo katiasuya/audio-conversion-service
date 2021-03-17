@@ -139,13 +139,13 @@ paths:
         '200':
           description: Downloaded successfully 
           content:
-            application/json:
+            multipart/form-data:
               schema:
-                $ref: '#/components/schemas/Audio'
-              example:
-                name: Euphoria.mp3
-                format: MP3
-                file: 'some binary sequence'
+                type: object
+                properties:
+                  file:
+                    type: string
+                    format: binary
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -155,16 +155,6 @@ paths:
 
 components:   
   schemas:  
-    Audio:
-      type: object
-      properties:
-        name: 
-          type: string
-        format:
-          $ref: '#/components/schemas/Format'
-        file:
-          type: string
-          format: binary
     ConversionRequest:
       type: object
       properties:
