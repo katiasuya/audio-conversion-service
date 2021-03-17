@@ -138,11 +138,12 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer sourceFile.Close()
 
+	sourceContentType := header.Header.Values("Content-type")
 	filename := header.Filename
 	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
 	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
 
-	if err := ValidateRequest(filename, sourceFormat, targetFormat); err != nil {
+	if err := ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
@@ -153,7 +154,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+	userID := "4d3f416b-e44d-41f8-8b4d-bb189657d64b"
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
@@ -204,12 +205,8 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := make([]byte, 512)
-	file.Read(header)
-	FileContentType := http.DetectContentType(header)
-
+	w.Header().Set("Content-Type", formats[audioInfo.Format])
 	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name)
-	w.Header().Set("Content-Type", FileContentType)
 
 	_, err = io.Copy(w, file)
 	if err != nil {
