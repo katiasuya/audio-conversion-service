@@ -230,7 +230,7 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", formats[audioInfo.Format])
-	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name)
+	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name+"."+audioInfo.Format)
 
 	_, err = io.Copy(w, file)
 	if err != nil {
