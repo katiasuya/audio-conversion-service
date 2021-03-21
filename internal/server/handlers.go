@@ -6,10 +6,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os/exec"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
@@ -163,27 +161,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	targetFileID, err := uuid.NewRandom()
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-	cmd := exec.Command("ffmpeg", "-i", s.storage.Path+"/"+fileID+"."+sourceFormat,
-		s.storage.Path+"/"+targetFileID.String()+"."+targetFormat)
-	if err := cmd.Run(); err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	targetID, err := s.repo.InsertAudio(filename, targetFormat, targetFileID.String())
-	if err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
-	if err := s.repo.UpdateRequest(requestID, targetID); err != nil {
-		RespondErr(w, http.StatusInternalServerError, err)
-		return
-	}
+	go s.convert(w, fileID, filename, sourceFormat, targetFormat, requestID)
 
 	type response struct {
 		ID string `json:"id"`
