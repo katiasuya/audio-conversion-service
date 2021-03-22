@@ -7,7 +7,9 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
+	"github.com/katiasuya/audio-conversion-service/internal/server/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
+	"golang.org/x/sync/semaphore"
 )
 
 // Run runs the application service.
@@ -26,7 +28,12 @@ func Run() error {
 
 	repo := repository.New(db)
 	storage := storage.New(conf.StoragePath)
-	server := server.New(repo, storage)
+
+	const maxRequests = 10
+	var sem = semaphore.NewWeighted(maxRequests)
+	converter := converter.New(sem, repo, storage)
+
+	server := server.New(repo, storage, converter)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)

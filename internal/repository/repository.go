@@ -88,8 +88,8 @@ func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
 	const updateRequest = `UPDATE converter.request 
 	SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
 
-	err := r.db.QueryRow(updateRequest, requestID, nullStr, status)
-	return err.Err()
+	row := r.db.QueryRow(updateRequest, requestID, nullStr, status)
+	return row.Err()
 }
 
 // GetRequestHistory gets the information about user's requests.

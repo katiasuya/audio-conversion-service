@@ -31,7 +31,7 @@ END$$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status') THEN
-        CREATE TYPE status AS ENUM ('queued', 'processing','done');
+        CREATE TYPE status AS ENUM ('queued', 'processing','done', 'failed');
     END IF;
 END$$;
 

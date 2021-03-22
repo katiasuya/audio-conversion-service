@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
+	"github.com/katiasuya/audio-conversion-service/internal/server/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
@@ -18,15 +19,17 @@ var errInvalidUsernameOrPassword = errors.New("invalid username or password")
 
 // Server represents application server.
 type Server struct {
-	repo    *repository.Repository
-	storage *storage.Storage
+	repo      *repository.Repository
+	storage   *storage.Storage
+	converter *converter.Converter
 }
 
 // New creates new application server.
-func New(repo *repository.Repository, storage *storage.Storage) *Server {
+func New(repo *repository.Repository, storage *storage.Storage, converter *converter.Converter) *Server {
 	return &Server{
-		repo:    repo,
-		storage: storage,
+		repo:      repo,
+		storage:   storage,
+		converter: converter,
 	}
 }
 
@@ -161,7 +164,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.convert(w, fileID, filename, sourceFormat, targetFormat, requestID)
+	go s.converter.Convert(fileID, filename, sourceFormat, targetFormat, requestID)
 
 	type response struct {
 		ID string `json:"id"`
