@@ -170,7 +170,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		ID: requestID,
 	}
 
-	Respond(w, http.StatusCreated, convertResp)
+	Respond(w, http.StatusAccepted, convertResp)
 }
 
 // RequestHistory shows request history of a user.

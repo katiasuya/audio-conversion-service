@@ -4,7 +4,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/katiasuya/audio-conversion-service/internal/server/model"
 	"github.com/lib/pq"
@@ -79,21 +78,17 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 	return requestID, err
 }
 
-// UpdateStatus changes the status to 'processing'.
-func (r *Repository) UpdateStatus(requestID string) error {
-	const updateStatus = `UPDATE converter.request 
-	SET status='processing' WHERE id=$1;`
-
-	err := r.db.QueryRow(updateStatus, requestID)
-	return err.Err()
-}
-
 // UpdateRequest updates the existing conversion request found by its id.
-func (r *Repository) UpdateRequest(requestID, targetID string) error {
-	const updateRequest = `UPDATE converter.request 
-	SET target_id=$2, status='done', updated=$3 WHERE id=$1;`
+func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
+	var nullStr sql.NullString
+	if targetID != "" {
+		nullStr = sql.NullString{String: targetID, Valid: true}
+	}
 
-	err := r.db.QueryRow(updateRequest, requestID, targetID, time.Now())
+	const updateRequest = `UPDATE converter.request 
+	SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
+
+	err := r.db.QueryRow(updateRequest, requestID, nullStr, status)
 	return err.Err()
 }
 
