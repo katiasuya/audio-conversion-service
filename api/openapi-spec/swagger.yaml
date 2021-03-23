@@ -212,7 +212,7 @@ components:
         enum: [mp3, wav]
     Status:
         type: string
-        enum: [queued, processing, done]
+        enum: [queued, processing, done, failed]
     Error:
       type: object
       properties:
