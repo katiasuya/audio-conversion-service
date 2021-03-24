@@ -55,6 +55,16 @@ func (r *Repository) GetUserPassword(username string) (string, error) {
 	return password, err
 }
 
+// InsertAudio inserts the audio into audio table.
+func (r *Repository) InsertAudio(name, format, location string) (string, error) {
+	var audioID string
+	const insertAudio = `INSERT INTO converter.audio (name, format, location) VALUES
+	($1, $2, $3) RETURNING id`
+
+	err := r.db.QueryRow(insertAudio, name, format, location).Scan(&audioID)
+	return audioID, err
+}
+
 // MakeRequest creates the conversion request and returns its id.
 func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, userID string) (string, error) {
 	var requestID string
@@ -66,6 +76,20 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 
 	err := r.db.QueryRow(makeConversionRequest, name, sourceFormat, location, userID, targetFormat).Scan(&requestID)
 	return requestID, err
+}
+
+// UpdateRequest updates the existing conversion request found by its id.
+func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
+	var nullStr sql.NullString
+	if targetID != "" {
+		nullStr = sql.NullString{String: targetID, Valid: true}
+	}
+
+	const updateRequest = `UPDATE converter.request 
+	SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
+
+	row := r.db.QueryRow(updateRequest, requestID, nullStr, status)
+	return row.Err()
 }
 
 // GetRequestHistory gets the information about user's requests.

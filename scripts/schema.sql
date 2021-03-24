@@ -24,14 +24,14 @@ CREATE SCHEMA IF NOT EXISTS converter;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'format') THEN
-        CREATE TYPE format AS ENUM ('MP3', 'WAV');
+        CREATE TYPE format AS ENUM ('mp3', 'wav');
     END IF;
 END$$;
 
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status') THEN
-        CREATE TYPE status AS ENUM ('queued', 'processing','done');
+        CREATE TYPE status AS ENUM ('queued', 'processing','done', 'failed');
     END IF;
 END$$;
 

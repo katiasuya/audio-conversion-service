@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
+	"github.com/katiasuya/audio-conversion-service/internal/server/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
@@ -18,15 +19,17 @@ var errInvalidUsernameOrPassword = errors.New("invalid username or password")
 
 // Server represents application server.
 type Server struct {
-	repo    *repository.Repository
-	storage *storage.Storage
+	repo      *repository.Repository
+	storage   *storage.Storage
+	converter *converter.Converter
 }
 
 // New creates new application server.
-func New(repo *repository.Repository, storage *storage.Storage) *Server {
+func New(repo *repository.Repository, storage *storage.Storage, converter *converter.Converter) *Server {
 	return &Server{
-		repo:    repo,
-		storage: storage,
+		repo:      repo,
+		storage:   storage,
+		converter: converter,
 	}
 }
 
@@ -138,11 +141,12 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer sourceFile.Close()
 
-	filename := header.Filename
-	sourceFormat := strings.ToUpper(r.FormValue("sourceFormat"))
-	targetFormat := strings.ToUpper(r.FormValue("targetFormat"))
+	sourceContentType := header.Header.Values("Content-type")
+	sourceFormat := strings.ToLower(r.FormValue("sourceFormat"))
+	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
+	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err := ValidateRequest(filename, sourceFormat, targetFormat); err != nil {
+	if err := ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		RespondErr(w, http.StatusBadRequest, err)
 		return
 	}
@@ -153,12 +157,14 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	go s.converter.Convert(fileID, filename, sourceFormat, targetFormat, requestID)
 
 	type response struct {
 		ID string `json:"id"`
@@ -167,12 +173,12 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		ID: requestID,
 	}
 
-	Respond(w, http.StatusCreated, convertResp)
+	Respond(w, http.StatusAccepted, convertResp)
 }
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID := "992dee5c-b4e3-49f8-9d4c-8903fa2284c9"
+	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
 
 	resp, err := s.repo.GetRequestHistory(userID)
 	if err != nil {
@@ -204,12 +210,8 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := make([]byte, 512)
-	file.Read(header)
-	FileContentType := http.DetectContentType(header)
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name)
-	w.Header().Set("Content-Type", FileContentType)
+	w.Header().Set("Content-Type", formats[audioInfo.Format])
+	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name+"."+audioInfo.Format)
 
 	_, err = io.Copy(w, file)
 	if err != nil {

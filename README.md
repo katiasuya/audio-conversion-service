@@ -28,3 +28,8 @@ AUDIO-CONVERTER_PASSWORD=your_password
 AUDIO-CONVERTER_DBNAME=audioconverter
 AUDIO-CONVERTER_SSLMODE=disable
 AUDIO-CONVERTER_STORAGE_PATH=your_storage_path
+
+## Conversion
+
+The service uses `ffmpeg` multimedia framework for audio conversion, so it needs to be installed.
+Go to `https://www.ffmpeg.org/download.html` and follow the instructions to download it.
