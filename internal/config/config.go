@@ -15,6 +15,7 @@ type Config struct {
 	DBName      string `required:"true"`
 	SSLMode     string `required:"true"`
 	StoragePath string `required:"true"`
+	SecretKey   string `required:"true"`
 }
 
 // Load loads configuration parameters to Config from environment variables.

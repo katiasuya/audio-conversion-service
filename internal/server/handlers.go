@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
@@ -22,25 +24,27 @@ type Server struct {
 	repo      *repository.Repository
 	storage   *storage.Storage
 	converter *converter.Converter
+	tokenMgr  *auth.TokenManager
 }
 
 // New creates new application server.
-func New(repo *repository.Repository, storage *storage.Storage, converter *converter.Converter) *Server {
+func New(repo *repository.Repository, storage *storage.Storage, converter *converter.Converter, tokenMgr *auth.TokenManager) *Server {
 	return &Server{
 		repo:      repo,
 		storage:   storage,
 		converter: converter,
+		tokenMgr:  tokenMgr,
 	}
 }
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/docs", s.ShowDoc).Methods("GET")
+	r.HandleFunc("/docs", s.tokenMgr.IsAuthorized(s.ShowDoc)).Methods("GET")
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
-	r.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
-	r.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
-	r.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
+	r.HandleFunc("/conversion", s.tokenMgr.IsAuthorized(s.ConversionRequest)).Methods("POST")
+	r.HandleFunc("/request_history", s.tokenMgr.IsAuthorized(s.RequestHistory)).Methods("GET")
+	r.HandleFunc("/download_audio/{id}", s.tokenMgr.IsAuthorized(s.Download)).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
@@ -110,7 +114,7 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	hashedPwd, err := s.repo.GetUserPassword(req.Username)
+	userID, hashedPwd, err := s.repo.GetIDAndPasswordByUsername(req.Username)
 	if err == repository.ErrNoSuchUser {
 		RespondErr(w, http.StatusUnauthorized, err)
 		return
@@ -125,8 +129,14 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	jwtToken, err := s.tokenMgr.NewJWT(userID)
+	if err != nil {
+		RespondErr(w, http.StatusUnauthorized, err)
+		return
+	}
+
 	resp := response{
-		Token: "eyJhbGciOiJIUzI1NiIs...",
+		Token: jwtToken,
 	}
 
 	Respond(w, http.StatusCreated, resp)
@@ -157,7 +167,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
+	userID := context.Get(r, "userID").(string)
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		RespondErr(w, http.StatusInternalServerError, err)
@@ -178,7 +188,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID := "2202df46-3a98-458e-b69b-4ddee6f3193c"
+	userID := context.Get(r, "userID").(string)
 
 	resp, err := s.repo.GetRequestHistory(userID)
 	if err != nil {

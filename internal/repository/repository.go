@@ -43,16 +43,16 @@ func (r *Repository) InsertUser(username, password string) (string, error) {
 	return userID, err
 }
 
-// GetUserPassword retrieves the database hashed password of a user.
-func (r *Repository) GetUserPassword(username string) (string, error) {
-	var password string
-	const getPasswordByUsername = `SELECT password FROM converter."user" WHERE username=$1;`
-	err := r.db.QueryRow(getPasswordByUsername, username).Scan(&password)
+// GetIDAndPasswordByUsername retrieves id and hashed password by the given username.
+func (r *Repository) GetIDAndPasswordByUsername(username string) (string, string, error) {
+	var userID, password string
+	const getIDAndPasswordByUsername = `SELECT id, password FROM converter."user" WHERE username=$1;`
+	err := r.db.QueryRow(getIDAndPasswordByUsername, username).Scan(&userID, &password)
 	if err == sql.ErrNoRows {
-		return "", ErrNoSuchUser
+		return "", "", ErrNoSuchUser
 	}
 
-	return password, err
+	return userID, password, err
 }
 
 // InsertAudio inserts the audio into audio table.

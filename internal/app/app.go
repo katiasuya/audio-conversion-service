@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
@@ -30,10 +31,12 @@ func Run() error {
 	storage := storage.New(conf.StoragePath)
 
 	const maxRequests = 10
-	var sem = semaphore.NewWeighted(maxRequests)
+	sem := semaphore.NewWeighted(maxRequests)
 	converter := converter.New(sem, repo, storage)
 
-	server := server.New(repo, storage, converter)
+	tokenMgr := auth.New(conf.SecretKey)
+
+	server := server.New(repo, storage, converter, tokenMgr)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
