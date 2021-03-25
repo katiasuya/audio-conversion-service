@@ -18,7 +18,7 @@ To create a PostgreSQL user, database, schema and tables needed for the service,
 
 ## Configuration
 
-To set the configuration parameters for database connection, create a .env file in the root of the repository
+To set the configuration parameters for the application, create a .env file in the root of the repository
 and set the following environment variables:
 
 AUDIO-CONVERTER_HOST=your_host(default localhost)
@@ -28,6 +28,7 @@ AUDIO-CONVERTER_PASSWORD=your_password
 AUDIO-CONVERTER_DBNAME=audioconverter
 AUDIO-CONVERTER_SSLMODE=disable
 AUDIO-CONVERTER_STORAGE_PATH=your_storage_path
+AUDIO-CONVERTER_SECRETKEY=your_secret_key
 
 ## Conversion
 
