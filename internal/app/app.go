@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
+	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
-	"github.com/katiasuya/audio-conversion-service/internal/server/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"golang.org/x/sync/semaphore"
 )
