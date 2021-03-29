@@ -4,15 +4,16 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
+	"github.com/katiasuya/audio-conversion-service/internal/server/context"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
@@ -40,15 +41,15 @@ func New(repo *repository.Repository, storage *storage.Storage, converter *conve
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	auth := r.PathPrefix("/auth").Subrouter()
-	auth.Use(s.tokenMgr.IsAuthorized)
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(s.tokenMgr.IsAuthorized)
 
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
-	auth.HandleFunc("/docs", s.ShowDoc).Methods("GET")
-	auth.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
-	auth.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
-	auth.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
+	api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
+	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
+	api.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
+	api.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
@@ -171,7 +172,12 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := context.Get(r, "userID").(string)
+	userID, ok := context.GetUserID(r.Context())
+	if !ok {
+		res.RespondErr(w, http.StatusInternalServerError, fmt.Errorf("can't retrieve user id from context"))
+		return
+	}
+
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		res.RespondErr(w, http.StatusInternalServerError, err)
@@ -192,7 +198,11 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID := context.Get(r, "userID").(string)
+	userID, ok := context.GetUserID(r.Context())
+	if !ok {
+		res.RespondErr(w, http.StatusInternalServerError, fmt.Errorf("can't retrieve user id from context"))
+		return
+	}
 
 	resp, err := s.repo.GetRequestHistory(userID)
 	if err != nil {

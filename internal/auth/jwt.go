@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/context"
+	"github.com/katiasuya/audio-conversion-service/internal/server/context"
 	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 )
 
@@ -39,8 +39,8 @@ func (tm *TokenManager) IsAuthorized(next http.Handler) http.Handler {
 			return
 		}
 
-		context.Set(r, "userID", claimUserID)
-		next.ServeHTTP(w, r)
+		ctx := context.SetWithUserID(r.Context(), claimUserID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
