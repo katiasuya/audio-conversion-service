@@ -41,7 +41,7 @@ func New(repo *repository.Repository, storage *storage.Storage, converter *conve
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	api := r.PathPrefix("/api").Subrouter()
+	api := r.NewRoute().Subrouter()
 	api.Use(s.tokenMgr.IsAuthorized)
 
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")

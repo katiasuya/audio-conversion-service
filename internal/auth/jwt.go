@@ -15,12 +15,13 @@ import (
 
 // TokenManager has mathods to use jwt and contains secret key.
 type TokenManager struct {
-	secretKey string
+	privateKey []byte
+	publicKey  []byte
 }
 
 // New returns new token manager with the given secret key.
-func New(secretKey string) *TokenManager {
-	return &TokenManager{secretKey: secretKey}
+func New(publicKey, privateKey []byte) *TokenManager {
+	return &TokenManager{privateKey: privateKey, publicKey: publicKey}
 }
 
 // IsAuthorized is a middleware that checks user authorization.
@@ -47,10 +48,10 @@ func (tm *TokenManager) IsAuthorized(next http.Handler) http.Handler {
 // ParseJWT validates and parses the given jwt access token.
 func (tm *TokenManager) ParseJWT(accessToken string) (string, error) {
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(tm.secretKey), nil
+		return jwt.ParseRSAPublicKeyFromPEM(tm.publicKey)
 	})
 	if err != nil || !token.Valid {
 		return "", err
@@ -67,10 +68,15 @@ func (tm *TokenManager) ParseJWT(accessToken string) (string, error) {
 // NewJWT creates new JWT token based on user id and secret key.
 func (tm *TokenManager) NewJWT(userID string) (string, error) {
 	const expTimeHrs = 24
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.StandardClaims{
 		Subject:   userID,
 		ExpiresAt: time.Now().Add(time.Hour * expTimeHrs).Unix(),
 	})
 
-	return token.SignedString([]byte(tm.secretKey))
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(tm.privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	return token.SignedString(privateKey)
 }
