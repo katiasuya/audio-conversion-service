@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -21,7 +20,6 @@ func Run() error {
 	var conf config.Config
 	err := conf.Load()
 	if err != nil {
-		fmt.Println("here")
 		return err
 	}
 
