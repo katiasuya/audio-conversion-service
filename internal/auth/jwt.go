@@ -13,15 +13,18 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 )
 
-// TokenManager has mathods to use jwt and contains secret key.
+// TokenManager has methods to use jwt and contains private and public keys.
 type TokenManager struct {
 	privateKey []byte
 	publicKey  []byte
 }
 
-// New returns new token manager with the given secret key.
+// New returns new token manager with the given keys.
 func New(publicKey, privateKey []byte) *TokenManager {
-	return &TokenManager{privateKey: privateKey, publicKey: publicKey}
+	return &TokenManager{
+		privateKey: privateKey,
+		publicKey:  publicKey,
+	}
 }
 
 // IsAuthorized is a middleware that checks user authorization.
@@ -65,7 +68,7 @@ func (tm *TokenManager) ParseJWT(accessToken string) (string, error) {
 	return claims["sub"].(string), nil
 }
 
-// NewJWT creates new JWT token based on user id and secret key.
+// NewJWT creates new JWT token based on user id and private key.
 func (tm *TokenManager) NewJWT(userID string) (string, error) {
 	const expTimeHrs = 24
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.StandardClaims{

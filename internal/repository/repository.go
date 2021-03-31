@@ -94,7 +94,7 @@ func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
 
 // GetRequestHistory gets the information about user's requests.
 func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, error) {
-	const getUserRequests = `SELECT r.id, a.name, source_format, target_format, r.created, r.updated, r.status
+	const getUserRequests = `SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
     FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
     WHERE r.user_id=$1;`
 
