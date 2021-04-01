@@ -172,7 +172,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := context.GetUserID(r.Context())
+	userID, ok := context.UserIDFromContext(r.Context())
 	if !ok {
 		res.RespondErr(w, http.StatusInternalServerError, fmt.Errorf("can't retrieve user id from context"))
 		return
@@ -198,7 +198,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID, ok := context.GetUserID(r.Context())
+	userID, ok := context.UserIDFromContext(r.Context())
 	if !ok {
 		res.RespondErr(w, http.StatusInternalServerError, fmt.Errorf("can't retrieve user id from context"))
 		return

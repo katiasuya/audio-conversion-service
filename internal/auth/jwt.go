@@ -43,7 +43,7 @@ func (tm *TokenManager) IsAuthorized(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.SetWithUserID(r.Context(), claimUserID)
+		ctx := context.ContextWithUserID(r.Context(), claimUserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
