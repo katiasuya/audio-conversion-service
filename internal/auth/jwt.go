@@ -2,15 +2,10 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/katiasuya/audio-conversion-service/internal/server/context"
-	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 )
 
 // TokenManager has methods to use jwt and contains private and public keys.
@@ -25,27 +20,6 @@ func New(publicKey, privateKey []byte) *TokenManager {
 		privateKey: privateKey,
 		publicKey:  publicKey,
 	}
-}
-
-// IsAuthorized is a middleware that checks user authorization.
-func (tm *TokenManager) IsAuthorized(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if len(authHeader) != 2 {
-			response.RespondErr(w, http.StatusUnauthorized, errors.New("malformed token"))
-			return
-		}
-
-		jwtToken := authHeader[1]
-		claimUserID, err := tm.ParseJWT(jwtToken)
-		if err != nil {
-			response.RespondErr(w, http.StatusUnauthorized, err)
-			return
-		}
-
-		ctx := context.ContextWithUserID(r.Context(), claimUserID)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 // ParseJWT validates and parses the given jwt access token.

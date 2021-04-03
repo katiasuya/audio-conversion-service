@@ -14,6 +14,7 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server/context"
+	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
@@ -39,10 +40,31 @@ func New(repo *repository.Repository, storage *storage.Storage, converter *conve
 	}
 }
 
+// IsAuthorized is a middleware that checks user authorization.
+func (s *Server) IsAuthorized(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		if len(authHeader) != 2 {
+			response.RespondErr(w, http.StatusUnauthorized, errors.New("malformed token"))
+			return
+		}
+
+		jwtToken := authHeader[1]
+		claimUserID, err := s.tokenMgr.ParseJWT(jwtToken)
+		if err != nil {
+			response.RespondErr(w, http.StatusUnauthorized, err)
+			return
+		}
+
+		ctx := context.ContextWithUserID(r.Context(), claimUserID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
 	api := r.NewRoute().Subrouter()
-	api.Use(s.tokenMgr.IsAuthorized)
+	api.Use(s.IsAuthorized)
 
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
