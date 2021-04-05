@@ -2,15 +2,14 @@ package server
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 )
 
 const (
-	minLength         = 5
-	maxNameLength     = 256
-	maxPasswordLength = 128
+	minLength = 6
+	maxLength = 128
 )
-
-var errInvalidLength = errors.New("invalid length")
 
 var formats = map[string]string{"mp3": "audio/mpeg", "wav": "audio/wave"}
 
@@ -19,8 +18,8 @@ func ValidateUserCredentials(username, password string) error {
 	if username == "" {
 		return errors.New("username is missing")
 	}
-	if len(username) < minLength || len(username) > maxNameLength {
-		return errInvalidLength
+	if len(username) < minLength || len(username) > maxLength {
+		return fmt.Errorf("invalid length: username must be from %d to %d characters", minLength, maxLength)
 	}
 
 	if err := validateChars(username); err != nil {
@@ -30,8 +29,8 @@ func ValidateUserCredentials(username, password string) error {
 	if password == "" {
 		return errors.New("password is missing")
 	}
-	if len(password) < minLength || len(password) > maxPasswordLength {
-		return errInvalidLength
+	if len(password) < minLength || len(password) > maxLength {
+		return fmt.Errorf("invalid length: password must be from %d to %d characters", minLength, maxLength)
 	}
 	if err := validateChars(password); err != nil {
 		return err
@@ -67,16 +66,10 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 
 // validateChars checks whether the given string contains invalid characters.
 func validateChars(str string) error {
-	//return errors.New("invalid characters")
-	return nil
-}
-
-// validateChars checks whether the given format is present in formats slice.
-func contains(format string, formats []string) bool {
-	for _, f := range formats {
-		if format == f {
-			return true
-		}
+	const invalidChars = `:;<>\{}[]+=?&," `
+	if strings.ContainsAny(str, invalidChars) {
+		return fmt.Errorf("invalid character(s): you can't use %sor space character(s)", invalidChars)
 	}
-	return false
+
+	return nil
 }

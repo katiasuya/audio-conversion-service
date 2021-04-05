@@ -43,16 +43,16 @@ func (r *Repository) InsertUser(username, password string) (string, error) {
 	return userID, err
 }
 
-// GetUserPassword retrieves the database hashed password of a user.
-func (r *Repository) GetUserPassword(username string) (string, error) {
-	var password string
-	const getPasswordByUsername = `SELECT password FROM converter."user" WHERE username=$1;`
-	err := r.db.QueryRow(getPasswordByUsername, username).Scan(&password)
+// GetIDAndPasswordByUsername retrieves id and hashed password by the given username.
+func (r *Repository) GetIDAndPasswordByUsername(username string) (string, string, error) {
+	var userID, password string
+	const getIDAndPasswordByUsername = `SELECT id, password FROM converter."user" WHERE username=$1;`
+	err := r.db.QueryRow(getIDAndPasswordByUsername, username).Scan(&userID, &password)
 	if err == sql.ErrNoRows {
-		return "", ErrNoSuchUser
+		return "", "", ErrNoSuchUser
 	}
 
-	return password, err
+	return userID, password, err
 }
 
 // InsertAudio inserts the audio into audio table.
@@ -94,7 +94,7 @@ func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
 
 // GetRequestHistory gets the information about user's requests.
 func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, error) {
-	const getUserRequests = `SELECT r.id, a.name, source_format, target_format, r.created, r.updated, r.status
+	const getUserRequests = `SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
     FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
     WHERE r.user_id=$1;`
 

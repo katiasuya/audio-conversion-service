@@ -58,7 +58,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			log.Println(err1)
 		}
-		log.Println(err)
+		log.Println("could not convert the file")
 		return
 	}
 
