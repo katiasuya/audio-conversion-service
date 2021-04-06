@@ -2,16 +2,19 @@ package response
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
+
+	"github.com/katiasuya/audio-conversion-service/internal/logger"
 )
 
 // Respond is a function to make http responses.
 func Respond(w http.ResponseWriter, code int, payload interface{}) {
 	body, err := json.Marshal(payload)
 	if err != nil {
-		http.Error(w, "can't marshal the given payload", http.StatusInternalServerError)
-		log.Println(err)
+		msg := fmt.Errorf("can't marshal the given payload: %w", err).Error()
+		logger.Init().WithField("package", "response").Errorln(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 

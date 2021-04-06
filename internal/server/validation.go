@@ -19,7 +19,7 @@ func ValidateUserCredentials(username, password string) error {
 		return errors.New("username is missing")
 	}
 	if len(username) < minLength || len(username) > maxLength {
-		return fmt.Errorf("invalid length: username must be from %d to %d characters", minLength, maxLength)
+		return fmt.Errorf("invalid length, username must be from %d to %d characters", minLength, maxLength)
 	}
 
 	if err := validateChars(username); err != nil {
@@ -30,7 +30,7 @@ func ValidateUserCredentials(username, password string) error {
 		return errors.New("password is missing")
 	}
 	if len(password) < minLength || len(password) > maxLength {
-		return fmt.Errorf("invalid length: password must be from %d to %d characters", minLength, maxLength)
+		return fmt.Errorf("invalid length, password must be from %d to %d characters", minLength, maxLength)
 	}
 	if err := validateChars(password); err != nil {
 		return err
@@ -54,7 +54,7 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 		return errors.New("source and target formats can't be equal")
 	}
 	if _, ok := formats[targetFormat]; !ok {
-		return errors.New("invalid target format: need mp3 or wav")
+		return errors.New("invalid target format, need mp3 or wav")
 	}
 
 	if err := validateChars(name); err != nil {
@@ -68,7 +68,7 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 func validateChars(str string) error {
 	const invalidChars = `:;<>\{}[]+=?&," `
 	if strings.ContainsAny(str, invalidChars) {
-		return fmt.Errorf("invalid character(s): you can't use %sor space character(s)", invalidChars)
+		return fmt.Errorf("invalid character(s), you can't use %sand space", invalidChars)
 	}
 
 	return nil
