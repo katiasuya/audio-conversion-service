@@ -255,5 +255,12 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res.Respond(w, http.StatusOK, fileURL)
+	type response struct {
+		FileURL string `json:"fileURL"`
+	}
+	downloadResp := response{
+		FileURL: fileURL,
+	}
+
+	res.Respond(w, http.StatusOK, downloadResp)
 }
