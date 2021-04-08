@@ -30,7 +30,8 @@ func Run() error {
 	defer db.Close()
 
 	repo := repository.New(db)
-	storage := storage.New(conf.StoragePath)
+
+	storage := storage.New(conf.AccessKeyID, conf.SecretAccessKey, conf.Region, conf.Bucket)
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
