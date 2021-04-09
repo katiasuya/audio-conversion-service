@@ -9,56 +9,41 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
 )
 
-// Storage represents aws s3 configuration.
+// Storage represents aws s3 client configuration.
 type Storage struct {
-	accessKeyID     string
-	secretAccessKey string
-	region          string
-	Bucket          string
+	bucket string
+	sess   *session.Session
 }
 
 // New creates a new storage with the given configuration.
-func New(accessKeyID, secretAccessKey, region, bucket string) *Storage {
+func New(bucket string, sess *session.Session) *Storage {
 	return &Storage{
-		accessKeyID:     accessKeyID,
-		secretAccessKey: secretAccessKey,
-		region:          region,
-		Bucket:          bucket,
+		bucket: bucket,
+		sess:   sess,
 	}
 }
 
-// NewSession creates new aws session.
-func (s *Storage) NewSession() (*session.Session, error) {
-	return session.NewSession(
-		&aws.Config{
-			Region:      aws.String(s.region),
-			Credentials: credentials.NewStaticCredentials(s.accessKeyID, s.secretAccessKey, ""),
-		},
-	)
+// GetClientConfig gets storage info.
+func (s *Storage) GetClientConfig() (*session.Session, string) {
+	return s.sess, s.bucket
 }
 
 // UploadFile stores request file in the storage.
 func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error) {
-	sess, err := s.NewSession()
-	if err != nil {
-		return "", fmt.Errorf("can't create session, %w", err)
-	}
-
 	fileID, err := uuid.NewRandom()
 	if err != nil {
 		return "", fmt.Errorf("can't generate file uuid, %w", err)
 	}
 
-	uploader := s3manager.NewUploader(sess)
+	uploader := s3manager.NewUploader(s.sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s.Bucket),
+		Bucket: aws.String(s.bucket),
 		Key:    aws.String(fileID.String() + "." + format),
 		Body:   sourceFile,
 	})
@@ -81,14 +66,10 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 
 // GetDownloadURL generates URL to download the file from the storage.
 func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
-	sess, err := s.NewSession()
-	if err != nil {
-		return "", fmt.Errorf("can't create session, %w", err)
-	}
-	svc := s3.New(sess)
+	svc := s3.New(s.sess)
 
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(s.Bucket),
+		Bucket: aws.String(s.bucket),
 		Key:    aws.String(fileID + "." + format),
 	})
 	urlStr, err := req.Presign(15 * time.Minute)
@@ -97,4 +78,5 @@ func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
 	}
 
 	return urlStr, err
+
 }

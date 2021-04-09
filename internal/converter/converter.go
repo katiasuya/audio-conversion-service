@@ -44,11 +44,6 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		return
 	}
 
-	sess, err := c.storage.NewSession()
-	if err != nil {
-		log.Println(fmt.Errorf("can't create session, %w", err))
-	}
-
 	if err := c.repo.UpdateRequest(requestID, status[0], ""); err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			log.Println(err1)
@@ -83,9 +78,10 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		log.Println(fmt.Errorf("can't open file, %w", err))
 		return
 	}
+	sess, bucket := c.storage.GetClientConfig()
 	uploader := s3manager.NewUploader(sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(c.storage.Bucket),
+		Bucket: aws.String(bucket),
 		Key:    aws.String(targetFileID.String() + "." + targetFormat),
 		Body:   targetFile,
 	})

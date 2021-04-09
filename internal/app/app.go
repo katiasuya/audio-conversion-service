@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
@@ -31,7 +34,14 @@ func Run() error {
 
 	repo := repository.New(db)
 
-	storage := storage.New(conf.AccessKeyID, conf.SecretAccessKey, conf.Region, conf.Bucket)
+	session, err := session.NewSession(
+		&aws.Config{
+			Region:      aws.String(conf.Region),
+			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
+		},
+	)
+
+	storage := storage.New(conf.Bucket, session)
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
