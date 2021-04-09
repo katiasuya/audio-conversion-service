@@ -29,7 +29,7 @@ func New(bucket string, sess *session.Session) *Storage {
 	}
 }
 
-// GetClientConfig gets storage info.
+// GetClientConfig gets client configuration.
 func (s *Storage) GetClientConfig() (*session.Session, string) {
 	return s.sess, s.bucket
 }
