@@ -7,10 +7,7 @@ jobs:
         auth:
           username: katiasuya
           password: $DOCKERHUB_PASSWORD
-      - image: circleci/postgres:9.6-alpine
-        auth:
-          username: katiasuya
-          password: $DOCKERHUB_PASSWORD 
+      - image: postgres:13-alpine
         environment:
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
 
