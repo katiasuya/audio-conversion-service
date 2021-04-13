@@ -5,70 +5,72 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
 )
 
-// Storage represents aws s3 client configuration.
+const LocationTemplate = "/tmp/%s.%s"
+
+// Storage represents aws s3 client.
 type Storage struct {
-	bucket string
-	sess   *session.Session
+	svc      *s3.S3
+	bucket   string
+	uploader *s3manager.Uploader
 }
 
-// New creates a new storage with the given configuration.
-func New(bucket string, sess *session.Session) *Storage {
+// New creates a new storage with the given client.
+func New(svc *s3.S3, bucket string, uploader *s3manager.Uploader) *Storage {
 	return &Storage{
-		bucket: bucket,
-		sess:   sess,
+		svc:      svc,
+		bucket:   bucket,
+		uploader: uploader,
 	}
 }
 
-// GetClientConfig gets client configuration.
-func (s *Storage) GetClientConfig() (*session.Session, string) {
-	return s.sess, s.bucket
-}
-
-// UploadFile stores request file in the storage.
+// UploadFile uploads request file.
 func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error) {
 	fileID, err := uuid.NewRandom()
 	if err != nil {
 		return "", fmt.Errorf("can't generate file uuid, %w", err)
 	}
+	fileIDStr := fileID.String()
 
-	uploader := s3manager.NewUploader(s.sess)
-	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s.bucket),
-		Key:    aws.String(fileID.String() + "." + format),
-		Body:   sourceFile,
-	})
-	if err != nil {
-		return "", fmt.Errorf("can't upload file, %w", err)
+	if err := s.UploadFileToCloud(sourceFile, fileIDStr, format); err != nil {
+		return "", err
 	}
 
-	file, err := os.Create(filepath.Join("/tmp", fileID.String()+"."+format))
+	file, err := os.Create(fmt.Sprintf(LocationTemplate, fileIDStr, format))
 	if err != nil {
 		return "", fmt.Errorf("can't create file, %w", err)
 	}
 	defer file.Close()
-
 	if _, err := io.Copy(file, sourceFile); err != nil {
 		return "", fmt.Errorf("can't copy file, %w", err)
 	}
 
-	return fileID.String(), nil
+	return fileIDStr, nil
+}
+
+// UploadFileToCloud uploads request file to s3 cloud storage.
+func (s *Storage) UploadFileToCloud(sourceFile io.Reader, fileID, format string) error {
+	_, err := s.uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(fileID + "." + format),
+		Body:   sourceFile,
+	})
+	if err != nil {
+		return fmt.Errorf("can't upload file to S3, %w", err)
+	}
+	return nil
 }
 
 // GetDownloadURL generates URL to download the file from the storage.
 func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
-	svc := s3.New(s.sess)
-
-	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
+	req, _ := s.svc.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
 		Key:    aws.String(fileID + "." + format),
 	})
@@ -78,5 +80,4 @@ func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
 	}
 
 	return urlStr, err
-
 }

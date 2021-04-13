@@ -8,8 +8,6 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
@@ -60,8 +58,12 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		log.Println(fmt.Errorf("can't generate target file uuid, %w", err))
 		return
 	}
+	targetFileIDStr := targetFileID.String()
 
-	cmd := exec.Command("ffmpeg", "-i", "/tmp/"+fileID+"."+sourceFormat, "/tmp/"+targetFileID.String()+"."+targetFormat)
+	sourceLocation := fmt.Sprintf(storage.LocationTemplate, fileID, sourceFormat)
+	targetLocation := fmt.Sprintf(storage.LocationTemplate, targetFileIDStr, targetFormat)
+
+	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	if err := cmd.Run(); err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			log.Println(err1)
@@ -70,7 +72,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		return
 	}
 
-	targetFile, err := os.Open("/tmp/" + targetFileID.String() + "." + targetFormat)
+	targetFile, err := os.Open(targetLocation)
 	if err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			log.Println(err1)
@@ -78,19 +80,17 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		log.Println(fmt.Errorf("can't open file, %w", err))
 		return
 	}
-	sess, bucket := c.storage.GetClientConfig()
-	uploader := s3manager.NewUploader(sess)
-	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(targetFileID.String() + "." + targetFormat),
-		Body:   targetFile,
-	})
+
+	err = c.storage.UploadFileToCloud(targetFile, targetFileIDStr, targetFormat)
 	if err != nil {
-		log.Println(fmt.Errorf("can't upload file, %w", err))
+		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
+			log.Println(err1)
+		}
+		log.Println(err)
 		return
 	}
 
-	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileID.String())
+	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			log.Println(err1)

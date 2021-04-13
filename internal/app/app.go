@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
@@ -21,8 +23,7 @@ import (
 // Run runs the application service.
 func Run() error {
 	var conf config.Config
-	err := conf.Load()
-	if err != nil {
+	if err := conf.Load(); err != nil {
 		return err
 	}
 
@@ -31,17 +32,17 @@ func Run() error {
 		return err
 	}
 	defer db.Close()
-
 	repo := repository.New(db)
 
-	session, err := session.NewSession(
+	sess, err := session.NewSession(
 		&aws.Config{
 			Region:      aws.String(conf.Region),
 			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
 		},
 	)
-
-	storage := storage.New(conf.Bucket, session)
+	uploader := s3manager.NewUploader(sess)
+	svc := s3.New(sess)
+	storage := storage.New(svc, conf.Bucket, uploader)
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
