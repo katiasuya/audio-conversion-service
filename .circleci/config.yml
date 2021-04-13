@@ -48,7 +48,7 @@ jobs:
           command: go test ./...
       - run:
           name: Create database schema
-          command: psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 --variable=user_var=TestUser --variable=password_var=TestPassword -f schema.sql
+          command: psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 --variable=user_var=TestUser --variable=password_var=TestPassword -f ./scripts/schema.sql
       - run:
           name: Start service
           command: go run cmd/main.go
