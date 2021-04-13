@@ -1,28 +1,40 @@
 version: 2.1
 jobs:
   build:
-    filters:
-      branches:
-        only:
-          - feature-circleci
-    working_directory: ~/repo
+    working_directory: ~/My_Internship_Projects/audio-conversion-service
     docker:
       - image: circleci/golang:1.15.8
+        auth:
+          username: katiasuya
+          password: $DOCKERHUB_PASSWORD
+      - image: circleci/postgres:9.6-alpine
+        auth:
+          username: katiasuya
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: converter 
+    environment: 
+      TEST_RESULTS: /tmp/test-results      
     steps:
       - checkout
+      - run: mkdir -p $TEST_RESULTS 
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
       - run:
           name: Install Dependencies
           command: go mod download
+      - run:
+          name: Waiting for Postgres to be ready
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m     
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
-            - "/go/pkg/mod"
+            - ~/.cache/go-build
       - run:
           name: Run tests
-          command: go test -v ./internal/server
+          command: go test -v ./...
       - store_test_results:
           path: /tmp/test-reports
 
