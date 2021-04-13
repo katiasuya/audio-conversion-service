@@ -2,8 +2,8 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
+	"os"
+	"strconv"
 )
 
 // Config represents configuration parameters for the application.
@@ -20,9 +20,14 @@ type Config struct {
 }
 
 // Load loads configuration parameters to Config from environment variables.
-func (c *Config) Load() error {
-	if err := godotenv.Load("../.env"); err != nil {
-		return err
-	}
-	return envconfig.Process("Audio-converter", c)
+func (c *Config) Load() {
+	c.Host = os.Getenv("HOST")
+	c.Port, _ = strconv.Atoi(os.Getenv("PORT"))
+	c.Username = os.Getenv("POSTGRES_USER")
+	c.Password = os.Getenv("POSTGRES_PASSWORD")
+	c.DBName = os.Getenv("POSTGRES_DB")
+	c.SSLMode = os.Getenv("SSLMODE")
+	c.StoragePath = os.Getenv("STORAGEPATH")
+	c.PrivateKeyPath = os.Getenv("PRIVATEKEYPATH")
+	c.PublicKeyPath = os.Getenv("PUBLICKEYPATH")
 }
