@@ -16,7 +16,6 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_DB: audioconverter 
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-          POSTGRES_HOST_AUTH_METHOD: trust
 
     parallelism: 2
 
@@ -37,23 +36,26 @@ jobs:
       - save_cache:
           key: v1-pkg-cache
           paths:
-            - ~/.cache/go-build
+            - /home/circleci/go/pkg/mod
       - run:
           name: Run tests
-          command: go test -v ./...
+          command: go test ./...
       - run:
           name: Start service
           environment:
             CONTACTS_DB_URL: "postgres://postgres@localhost:5432/audioconverter?sslmode=disable"
-          command: ./workdir/user/signup
+          command: ./github.com/katiasuya/audioconverter/user/signup
           background: true 
       - run:
           name: Validate service is working
           command: |
             sleep 5
-            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{username":"Test User", "password": "qwerty123"}' http://localhost:8000/user/signup
+            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"username":"TestUser", "password": "qwerty123"}' http://localhost:8000/user/signup
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
       - store_test_results:
-          path: /tmp/test-reports
+          path: /tmp/test-results
 workflows:
   version: 2.1
   build-workflow: 
