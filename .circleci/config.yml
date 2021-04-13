@@ -42,9 +42,7 @@ jobs:
           command: go test ./...
       - run:
           name: Start service
-          environment:
-            CONTACTS_DB_URL: "postgres://postgres@localhost:5432/audioconverter?sslmode=disable"
-          command: ./github.com/katiasuya/audioconverter/user/signup
+          command: go run cmd/main.go
           background: true 
       - run:
           name: Validate service is working
