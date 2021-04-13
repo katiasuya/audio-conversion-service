@@ -3,14 +3,6 @@
 version: 2.1
 jobs:
   build:
-    filters:
-      branches:
-        only:
-          - feature-circleci
-    # filters:
-    #   branches:
-    #     only:
-    #       - feature-circleci
     working_directory: ~/repo
     docker:
       - image: circleci/golang:1.15.8
@@ -28,7 +20,7 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Run tests
-          command: go test -v ./internal/server
+          command: go test -v ./...
       - store_test_results:
           path: /tmp/test-reports
 
