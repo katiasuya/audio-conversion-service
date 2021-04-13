@@ -34,6 +34,9 @@ jobs:
           name: Install Dependencies
           command: go mod download
       - run:
+          name: Install psql
+          command: sudo apt install -y postgresql-client 
+      - run:
           name: Waiting for Postgres to be ready
           command: dockerize -wait tcp://localhost:5432 -timeout 1m       
       - save_cache:
@@ -45,10 +48,7 @@ jobs:
           command: go test ./...
       - run:
           name: Create database schema
-          command: psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 \
-	                --variable=user_var=TestUser \
-	                --variable=password_var=TestPassword \
-                	-f schema.sql
+          command: psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 --variable=user_var=TestUser --variable=password_var=TestPassword -f schema.sql
       - run:
           name: Start service
           command: go run cmd/main.go
