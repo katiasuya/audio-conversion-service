@@ -35,7 +35,10 @@ jobs:
           command: sudo apt-get -y update && sudo apt-get install -y postgresql-client
       - run:
           name: Waiting for Postgres to be ready
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m       
+          command: >-
+            dockerize -wait
+            tcp://localhost:5432
+            -timeout 1m     
       - save_cache:
           key: v1-pkg-cache
           paths:
@@ -55,11 +58,18 @@ jobs:
           command: go run cmd/main.go
           background: true 
       - run:
-          name: Validate service is working
-          command: |
-            dockerize -wait tcp://localhost:8000 -timeout 1m  
-            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" \
-            -d '{"username":"TestUser", "password": "qwerty123"}' http://localhost:8000/user/signup
+          name: Wait for port to be listened
+          command: >-
+            dockerize -wait
+            tcp://localhost:8000
+            -timeout 1m
+      - run:
+          name: Validate service is working by auth
+          command: >-
+            curl --retry 10 --retry-delay 1 -X POST
+            --header "Content-Type: application/json"
+            -d '{"username":"TestUser", "password":"qwerty123"}'
+            http://localhost:8000/user/signup    
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
