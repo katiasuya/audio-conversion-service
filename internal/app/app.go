@@ -44,7 +44,7 @@ func Run() error {
 	sem := semaphore.NewWeighted(maxRequests)
 	converter := converter.New(sem, repo, storage)
 
-	tokenMgr := auth.New([]byte(conf.PublicKeyPath), []byte(conf.PrivateKeyPath))
+	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
 	server := server.New(repo, storage, converter, tokenMgr)
 

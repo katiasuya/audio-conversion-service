@@ -8,8 +8,7 @@ Audio-converter is a service that exposes a RESTful API to convert WAV to MP3 an
 
 ## Configuration
 
-To set the configuration parameters for the application, create a .env file at the root of the repository  
-with the following environment variables:
+To set the configuration parameters for the application, set the following environment variables:
 
 [1]  
 ```bash
@@ -22,8 +21,8 @@ AUDIO-CONVERTER_SSLMODE=disable
 ```
 [2]  
 ```bash
-AUDIO-CONVERTER_PRIVATEKEYPATH="your_private_key_path"  
-AUDIO-CONVERTER_PUBLICKEYPATH="your_public_key_path"  
+AUDIO-CONVERTER_PRIVATEKEY="`cat your_private_key_path`"
+AUDIO-CONVERTER_PUBLICKEY="`cat your_public_key_path`" 
 ```
 [3]  
 ```bash
