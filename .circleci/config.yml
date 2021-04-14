@@ -28,7 +28,7 @@ jobs:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
       - run:
-          name: Install Dependencies
+          name: Install dependencies
           command: go mod download
       - run:
           name: Install psql
@@ -45,7 +45,11 @@ jobs:
           command: go test ./...
       - run:
           name: Create database schema
-          command: psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 --variable=user_var=TestUser --variable=password_var=TestPassword -f ./scripts/schema.sql
+          command: >-
+            psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 
+            --variable=user_var=TestUser 
+            --variable=password_var=TestPassword 
+            -f ./scripts/schema.sql
       - run:
           name: Start service
           command: go run cmd/main.go
@@ -53,8 +57,9 @@ jobs:
       - run:
           name: Validate service is working
           command: |
-            sleep 5
-            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"username":"TestUser", "password": "qwerty123"}' http://localhost:8000/user/signup
+            dockerize -wait tcp://localhost:8000 -timeout 1m  
+            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" \
+            -d '{"username":"TestUser", "password": "qwerty123"}' http://localhost:8000/user/signup
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
