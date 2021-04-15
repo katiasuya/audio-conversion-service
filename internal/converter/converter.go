@@ -41,7 +41,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-  logger.Errorln(fmt.Errorf("can't aquire semaphore, %w", err))
+		logger.Errorln(fmt.Errorf("can't aquire semaphore, %w", err))
 		return
 	}
 
@@ -62,7 +62,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		logger.Errorln(fmt.Errorf("can't generate target file uuid, %w", err))
 		return
 	}
-  logger.Debugln("targetFileID generated successfully")
+	logger.Debugln("targetFileID generated successfully")
 	targetFileIDStr := targetFileID.String()
 
 	sourceLocation := fmt.Sprintf(storage.LocationTemplate, fileID, sourceFormat)
@@ -81,9 +81,9 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 	targetFile, err := os.Open(targetLocation)
 	if err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			log.Println(err1)
+			logger.Errorln(err1)
 		}
-		log.Println(fmt.Errorf("can't open file, %w", err))
+		logger.Errorln(fmt.Errorf("can't generate targetFileID, %w", err))
 		return
 	}
 
@@ -100,9 +100,9 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			log.Println(err1)
+			logger.Errorln(err1)
 		}
-		log.Println(fmt.Errorf("can't insert audio, %w", err))
+		logger.Errorln(fmt.Errorf("can't insert audio, %w", err))
 		return
 	}
 

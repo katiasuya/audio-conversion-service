@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,7 +26,7 @@ func Run() error {
 
 	var conf config.Config
 	conf.Load()
-  logger.WithField("package", "app").Infoln("configuration data loaded successfully")
+	logger.WithField("package", "app").Infoln("configuration data loaded successfully")
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
@@ -35,7 +34,7 @@ func Run() error {
 	}
 	defer db.Close()
 	logger.WithField("package", "app").Infoln("connected to database")
-  
+
 	repo := repository.New(db)
 
 	sess, err := session.NewSession(
@@ -53,7 +52,7 @@ func Run() error {
 	converter := converter.New(sem, repo, storage)
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
-  logger.WithField("package", "app").Infoln("keys loaded successfully")
+	logger.WithField("package", "app").Infoln("keys loaded successfully")
 
 	server := server.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
 

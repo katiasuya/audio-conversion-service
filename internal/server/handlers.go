@@ -289,7 +289,6 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 	res.Respond(w, http.StatusOK, downloadResp)
 }
 
-
 func (s *Server) logAndRespondErr(w http.ResponseWriter, wrapper string, err error, code int) {
 	errMsg := fmt.Errorf(wrapper+"%w", err)
 	s.logger.Errorln(errMsg)
