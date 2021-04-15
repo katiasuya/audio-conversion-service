@@ -3,6 +3,9 @@ package converter
 
 import (
 	"context"
+
+	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/google/uuid"
@@ -16,14 +19,18 @@ var status = []string{"processing", "done", "failed"}
 
 // Converter converts audio files to other formats.
 type Converter struct {
-	sem  *semaphore.Weighted
-	repo *repository.Repository
-	st   *storage.Storage
+	sem     *semaphore.Weighted
+	repo    *repository.Repository
+	storage *storage.Storage
 }
 
 // New creates a new Converter with given fields.
-func New(sem *semaphore.Weighted, repo *repository.Repository, st *storage.Storage) *Converter {
-	return &Converter{sem: sem, repo: repo, st: st}
+func New(sem *semaphore.Weighted, repo *repository.Repository, storage *storage.Storage) *Converter {
+	return &Converter{
+		sem:     sem,
+		repo:    repo,
+		storage: storage,
+	}
 }
 
 // Convert implements audio conversion.
@@ -34,7 +41,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-		logger.Errorln("can't acquire the semaphore: ", err)
+  logger.Errorln(fmt.Errorf("can't aquire semaphore, %w", err))
 		return
 	}
 
@@ -42,7 +49,7 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-		logger.Errorln("can't update request: ", err)
+		logger.Errorln(fmt.Errorf("can't update request, %w", err))
 		return
 	}
 	logger.Debugln("status changed to processing")
@@ -52,23 +59,35 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-		logger.Errorln("can't generate targetFileID: ", err)
+		logger.Errorln(fmt.Errorf("can't generate target file uuid, %w", err))
 		return
 	}
-	logger.Debugln("targetFileID generated successfully")
+  logger.Debugln("targetFileID generated successfully")
+	targetFileIDStr := targetFileID.String()
 
-	cmd := exec.Command("ffmpeg", "-i", c.st.Path+"/"+fileID+"."+sourceFormat,
-		c.st.Path+"/"+targetFileID.String()+"."+targetFormat)
+	sourceLocation := fmt.Sprintf(storage.LocationTemplate, fileID, sourceFormat)
+	targetLocation := fmt.Sprintf(storage.LocationTemplate, targetFileIDStr, targetFormat)
+
+	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	if err := cmd.Run(); err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-		logger.Errorln("can't convert the file: ", err)
+		logger.Errorln(fmt.Errorf("can't perform conversion, %w", err))
 		return
 	}
 	logger.Debugln("convertion performed successfully")
 
-	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileID.String())
+	targetFile, err := os.Open(targetLocation)
+	if err != nil {
+		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
+			log.Println(err1)
+		}
+		log.Println(fmt.Errorf("can't open file, %w", err))
+		return
+	}
+
+	err = c.storage.UploadFileToCloud(targetFile, targetFileIDStr, targetFormat)
 	if err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
@@ -77,6 +96,15 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		return
 	}
 	logger.Debugln("converted audio inserted successfully")
+
+	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
+	if err != nil {
+		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
+			log.Println(err1)
+		}
+		log.Println(fmt.Errorf("can't insert audio, %w", err))
+		return
+	}
 
 	if err := c.repo.UpdateRequest(requestID, status[1], targetID); err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {

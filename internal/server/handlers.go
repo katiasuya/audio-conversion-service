@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -274,23 +273,22 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 	}
 	s.logger.Debugln("audio found successfully by id")
 
-	file, err := s.storage.DownloadFile(audioInfo.Location, audioInfo.Format)
+	fileURL, err := s.storage.GetDownloadURL(audioInfo.Location, audioInfo.Format)
 	if err != nil {
 		s.logAndRespondErr(w, "can't download the file: ", err, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", formats[audioInfo.Format])
-	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name+"."+audioInfo.Format)
-
-	_, err = io.Copy(w, file)
-	if err != nil {
-		s.logAndRespondErr(w, "", err, http.StatusInternalServerError)
-		return
+	type response struct {
+		FileURL string `json:"fileURL"`
+	}
+	downloadResp := response{
+		FileURL: fileURL,
 	}
 
-	s.logger.WithField("fileID", id).Infoln("file downloaded successfully")
+	res.Respond(w, http.StatusOK, downloadResp)
 }
+
 
 func (s *Server) logAndRespondErr(w http.ResponseWriter, wrapper string, err error, code int) {
 	errMsg := fmt.Errorf(wrapper+"%w", err)

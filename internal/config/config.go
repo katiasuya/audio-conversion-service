@@ -2,27 +2,37 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
+	"os"
 )
 
 // Config represents configuration parameters for the application.
 type Config struct {
-	Host           string `required:"true"`
-	Port           int    `required:"true"`
-	Username       string `required:"true"`
-	Password       string `required:"true"`
-	DBName         string `required:"true"`
-	SSLMode        string `required:"true"`
-	StoragePath    string `required:"true"`
-	PrivateKeyPath string `required:"true"`
-	PublicKeyPath  string `required:"true"`
+	Host            string `required:"true"`
+	Port            string `required:"true"`
+	Username        string `required:"true"`
+	Password        string `required:"true"`
+	DBName          string `required:"true"`
+	SSLMode         string `required:"true"`
+	PrivateKey      string `required:"true"`
+	PublicKey       string `required:"true"`
+	AccessKeyID     string `required:"true"`
+	SecretAccessKey string `required:"true"`
+	Region          string `required:"true"`
+	Bucket          string `required:"true"`
 }
 
 // Load loads configuration parameters to Config from environment variables.
-func (c *Config) Load() error {
-	if err := godotenv.Load("../.env"); err != nil {
-		return err
-	}
-	return envconfig.Process("Audio-converter", c)
+func (c *Config) Load() {
+	c.Host = os.Getenv("HOST")
+	c.Port = os.Getenv("PORT")
+	c.Username = os.Getenv("POSTGRES_USER")
+	c.Password = os.Getenv("POSTGRES_PASSWORD")
+	c.DBName = os.Getenv("POSTGRES_DB")
+	c.SSLMode = os.Getenv("SSLMODE")
+	c.PrivateKey = os.Getenv("PRIVATEKEY")
+	c.PublicKey = os.Getenv("PUBLICKEY")
+	c.AccessKeyID = os.Getenv("ACCESSKEYID")
+	c.SecretAccessKey = os.Getenv("SECRETACCESSKEY")
+	c.Region = os.Getenv("REGION")
+	c.Bucket = os.Getenv("BUCKET")
 }

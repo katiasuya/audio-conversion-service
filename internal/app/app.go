@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
@@ -22,11 +26,8 @@ func Run() error {
 	logger := logger.Init()
 
 	var conf config.Config
-	err := conf.Load()
-	if err != nil {
-		return fmt.Errorf("can't load configuration data: %w", err)
-	}
-	logger.WithField("package", "app").Infoln("configuration data loaded successfully")
+	conf.Load()
+  logger.WithField("package", "app").Infoln("configuration data loaded successfully")
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
@@ -34,24 +35,25 @@ func Run() error {
 	}
 	defer db.Close()
 	logger.WithField("package", "app").Infoln("connected to database")
-
+  
 	repo := repository.New(db)
-	storage := storage.New(conf.StoragePath)
+
+	sess, err := session.NewSession(
+		&aws.Config{
+			Region:      aws.String(conf.Region),
+			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
+		},
+	)
+	uploader := s3manager.NewUploader(sess)
+	svc := s3.New(sess)
+	storage := storage.New(svc, conf.Bucket, uploader)
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
 	converter := converter.New(sem, repo, storage)
 
-	privateKey, err := getKey(conf.PrivateKeyPath)
-	if err != nil {
-		return fmt.Errorf("can't load private key: %w", err)
-	}
-	publicKey, err := getKey(conf.PublicKeyPath)
-	if err != nil {
-		return fmt.Errorf("can't load public key: %w", err)
-	}
-	logger.WithField("package", "app").Infoln("keys loaded successfully")
-	tokenMgr := auth.New(publicKey, privateKey)
+	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
+  logger.WithField("package", "app").Infoln("keys loaded successfully")
 
 	server := server.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
 
@@ -59,14 +61,4 @@ func Run() error {
 	server.RegisterRoutes(r)
 
 	return http.ListenAndServe(":8000", r)
-}
-
-func getKey(keyPath string) ([]byte, error) {
-	file, err := os.Open(keyPath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	return ioutil.ReadAll(file)
 }

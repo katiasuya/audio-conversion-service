@@ -10,12 +10,12 @@ import (
 
 // TokenManager has methods to use jwt and contains private and public keys.
 type TokenManager struct {
-	privateKey []byte
-	publicKey  []byte
+	privateKey string
+	publicKey  string
 }
 
 // New returns new token manager with the given keys.
-func New(publicKey, privateKey []byte) *TokenManager {
+func New(publicKey, privateKey string) *TokenManager {
 	return &TokenManager{
 		privateKey: privateKey,
 		publicKey:  publicKey,
@@ -28,7 +28,7 @@ func (tm *TokenManager) ParseJWT(accessToken string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return jwt.ParseRSAPublicKeyFromPEM(tm.publicKey)
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(tm.publicKey))
 	})
 	if err != nil || !token.Valid {
 		return "", err
@@ -50,7 +50,7 @@ func (tm *TokenManager) NewJWT(userID string) (string, error) {
 		ExpiresAt: time.Now().Add(time.Hour * expTimeHrs).Unix(),
 	})
 
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(tm.privateKey)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(tm.privateKey))
 	if err != nil {
 		return "", err
 	}
