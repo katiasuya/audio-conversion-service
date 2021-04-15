@@ -62,14 +62,13 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		logger.Errorln(fmt.Errorf("can't generate target file uuid, %w", err))
 		return
 	}
-	logger.Debugln("targetFileID generated successfully")
 	targetFileIDStr := targetFileID.String()
 
 	sourceLocation := fmt.Sprintf(storage.LocationTemplate, fileID, sourceFormat)
 	targetLocation := fmt.Sprintf(storage.LocationTemplate, targetFileIDStr, targetFormat)
 
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
-	if err := cmd.Run(); err != nil {
+	if err = cmd.Run(); err != nil {
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
@@ -92,10 +91,10 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
 			logger.Errorln(err1)
 		}
-		logger.Errorln("can't insert audio: ", err)
+		logger.Errorln("can't upload file to s3: ", err)
 		return
 	}
-	logger.Debugln("converted audio inserted successfully")
+	logger.Debugln("converted file uploaded to s3 successfully")
 
 	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {

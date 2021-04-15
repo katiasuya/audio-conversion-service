@@ -34,7 +34,6 @@ func Run() error {
 	}
 	defer db.Close()
 	logger.WithField("package", "app").Infoln("connected to database")
-
 	repo := repository.New(db)
 
 	sess, err := session.NewSession(
@@ -43,16 +42,19 @@ func Run() error {
 			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
 		},
 	)
+	if err != nil {
+		return fmt.Errorf("can't create new session: %w", err)
+	}
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
 	storage := storage.New(svc, conf.Bucket, uploader)
+	logger.WithField("package", "app").Infoln("cloud storage initialized successfully")
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
 	converter := converter.New(sem, repo, storage)
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
-	logger.WithField("package", "app").Infoln("keys loaded successfully")
 
 	server := server.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
 

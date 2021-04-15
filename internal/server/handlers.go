@@ -61,8 +61,6 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 			return
 		}
 
-		s.logger.Debugln("JWT was parsed and validated successfully")
-
 		ctx := context.ContextWithUserID(r.Context(), claimUserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -98,7 +96,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	var req request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.logAndRespondErr(w, "can't decode the request body: ", err, http.StatusBadRequest)
+		s.logAndRespondErr(w, "can't decode request body: ", err, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -107,14 +105,13 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "invalid user credentials: ", err, http.StatusBadRequest)
 		return
 	}
-	s.logger.Debugln("user's credentials validated successfully")
+	s.logger.Debugln("user's credentials validated")
 
 	hash, err := hash.HashPassword(req.Password)
 	if err != nil {
 		s.logAndRespondErr(w, "can't hash password: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("password hashed successfully")
 
 	userID, err := s.repo.InsertUser(req.Username, hash)
 	if err == repository.ErrUserAlreadyExists {
@@ -125,7 +122,6 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "can't insert user: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("user inserted successfully")
 
 	resp := response{
 		ID: userID,
@@ -147,7 +143,7 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	var req request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.logAndRespondErr(w, "can't decode the request body: ", err, http.StatusUnauthorized)
+		s.logAndRespondErr(w, "can't decode request body: ", err, http.StatusUnauthorized)
 		return
 	}
 	defer r.Body.Close()
@@ -161,26 +157,24 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "can't get user id and password: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("user's id and password got successfully")
 
 	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
 		s.logAndRespondErr(w, "", errInvalidUsernameOrPassword, http.StatusUnauthorized)
 		return
 	}
-	s.logger.Debugln("hashed passwords match")
+	s.logger.Debugln("login: hashed passwords match")
 
 	jwtToken, err := s.tokenMgr.NewJWT(userID)
 	if err != nil {
 		s.logAndRespondErr(w, "can't create JWT: ", err, http.StatusUnauthorized)
 		return
 	}
-	s.logger.Debugln("JWT was created successfully")
 
 	resp := response{
 		Token: jwtToken,
 	}
 
-	s.logger.WithField("userID", userID).Infoln("user authenticated successfully")
+	s.logger.WithField("userID", userID).Infoln("user authenticated and authorized successfully")
 	res.Respond(w, http.StatusCreated, resp)
 }
 
@@ -192,6 +186,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer sourceFile.Close()
+	s.logger.Debugln("source file recieved from form successfully")
 
 	sourceContentType := header.Header.Values("Content-type")
 	sourceFormat := strings.ToLower(r.FormValue("sourceFormat"))
@@ -202,28 +197,26 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "invalid request: ", err, http.StatusBadRequest)
 		return
 	}
-	s.logger.Debugln("request validated successfully")
+	s.logger.Debugln("conversion request validated")
 
 	fileID, err := s.storage.UploadFile(sourceFile, sourceFormat)
 	if err != nil {
-		s.logAndRespondErr(w, "can't upload the file: ", err, http.StatusInternalServerError)
+		s.logAndRespondErr(w, "can't upload file: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("file uploaded successfully")
+	s.logger.Debugln("source file uploaded successfully")
 
 	userID, ok := context.UserIDFromContext(r.Context())
 	if !ok {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("user id retrieved from the context successfully")
 
 	requestID, err := s.repo.MakeRequest(filename, sourceFormat, targetFormat, fileID, userID)
 	if err != nil {
 		s.logAndRespondErr(w, "can't make conversion request: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("conversion request made successfully")
 
 	go s.converter.Convert(fileID, filename, sourceFormat, targetFormat, requestID)
 
@@ -234,7 +227,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		ID: requestID,
 	}
 
-	s.logger.WithField("requestID", requestID).Infoln("requestID created successfully")
+	s.logger.WithField("requestID", requestID).Infoln("conversion request created successfully")
 	res.Respond(w, http.StatusAccepted, convertResp)
 }
 
@@ -245,7 +238,6 @@ func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("user id retrieved from the context successfully")
 
 	resp, err := s.repo.GetRequestHistory(userID)
 	if err != nil {
@@ -271,11 +263,10 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		s.logAndRespondErr(w, "can't get audio: ", err, http.StatusInternalServerError)
 		return
 	}
-	s.logger.Debugln("audio found successfully by id")
 
 	fileURL, err := s.storage.GetDownloadURL(audioInfo.Location, audioInfo.Format)
 	if err != nil {
-		s.logAndRespondErr(w, "can't download the file: ", err, http.StatusInternalServerError)
+		s.logAndRespondErr(w, "can't get download URL: ", err, http.StatusInternalServerError)
 		return
 	}
 
@@ -286,6 +277,7 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		FileURL: fileURL,
 	}
 
+	s.logger.WithField("audioID", id).Infoln("download URL created successfully")
 	res.Respond(w, http.StatusOK, downloadResp)
 }
 
