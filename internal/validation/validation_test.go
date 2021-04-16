@@ -1,4 +1,4 @@
-package server
+package validation
 
 import "testing"
 
@@ -14,37 +14,37 @@ func TestValidateUserCredentials(t *testing.T) {
 			name:     "missing username",
 			username: "",
 			password: "qwerty123",
-			exp:      errMissingUsername,
+			exp:      ErrMissingUsername,
 		},
 		{
 			name:     "missing password",
 			username: "jonathan",
 			password: "",
-			exp:      errMissingPassword,
+			exp:      ErrMissingPassword,
 		},
 		{
 			name:     "invalid username length",
 			username: "john",
 			password: "1",
-			exp:      errInvalidLength,
+			exp:      ErrInvalidLength,
 		},
 		{
 			name:     "invalid password length",
 			username: "jonathan",
 			password: "123",
-			exp:      errInvalidLength,
+			exp:      ErrInvalidLength,
 		},
 		{
 			name:     "invalid username chars",
 			username: "joh n123",
 			password: "1",
-			exp:      errInvalidChars,
+			exp:      ErrInvalidChars,
 		},
 		{
 			name:     "invalid password chars",
 			username: "jonathan",
 			password: "qwerty&123",
-			exp:      errInvalidChars,
+			exp:      ErrInvalidChars,
 		},
 	}
 
