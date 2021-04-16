@@ -193,7 +193,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err := ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		s.logAndRespondErr(w, "invalid request: ", err, http.StatusBadRequest)
 		return
 	}
