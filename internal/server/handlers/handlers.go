@@ -1,5 +1,5 @@
 // Package server implements http handlers.
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -13,7 +13,6 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	ctx "github.com/katiasuya/audio-conversion-service/internal/server/context"
-	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
@@ -284,7 +283,7 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 func (s *Server) logAndRespondErr(w http.ResponseWriter, wrapper string, err error, code int) {
 	errMsg := fmt.Errorf(wrapper+"%w", err)
 	s.logger.Errorln(errMsg)
-	response.RespondErr(w, code, errMsg)
+	res.RespondErr(w, code, errMsg)
 }
 
 const (
