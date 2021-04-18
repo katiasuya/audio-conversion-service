@@ -1,5 +1,5 @@
 // Package server implements http handlers.
-package handlers
+package server
 
 import (
 	"encoding/json"
@@ -12,7 +12,6 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
-	"github.com/katiasuya/audio-conversion-service/internal/server"
 	ctx "github.com/katiasuya/audio-conversion-service/internal/server/context"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
@@ -101,7 +100,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := server.ValidateUserCredentials(req.Username, req.Password); err != nil {
+	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
 		s.logAndRespondErr(w, "invalid user credentials: ", err, http.StatusBadRequest)
 		return
 	}
@@ -193,7 +192,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err = server.ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		s.logAndRespondErr(w, "invalid request: ", err, http.StatusBadRequest)
 		return
 	}

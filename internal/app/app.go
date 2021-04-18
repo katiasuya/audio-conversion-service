@@ -15,7 +15,7 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/logging"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
-	"github.com/katiasuya/audio-conversion-service/internal/server/handlers"
+	"github.com/katiasuya/audio-conversion-service/internal/server"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"golang.org/x/sync/semaphore"
 )
@@ -56,7 +56,7 @@ func Run() error {
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := handlers.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
+	server := server.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
