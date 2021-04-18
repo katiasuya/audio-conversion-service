@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/katiasuya/audio-conversion-service/internal/logger"
+	"github.com/katiasuya/audio-conversion-service/internal/logging"
 )
 
 // Respond is a function to make http responses.
@@ -13,7 +13,7 @@ func Respond(w http.ResponseWriter, code int, payload interface{}) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		msg := fmt.Errorf("can't marshal the given payload: %w", err).Error()
-		logger.Init().WithField("package", "response").Errorln(msg)
+		logging.Init().WithField("package", "response").Errorln(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
