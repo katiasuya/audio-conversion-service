@@ -10,17 +10,27 @@ import (
 
 // Respond is a function to make http responses.
 func Respond(w http.ResponseWriter, code int, payload interface{}) {
+	logger := logging.Init().WithField("package", "response")
+
+	w.Header().Set("Content-Type", "application/json")
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		msg := fmt.Errorf("can't marshal the given payload: %w", err).Error()
-		logging.Init().WithField("package", "response").Errorln(msg)
+		logger.Errorln(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(body)
+	if err != nil {
+		msg := fmt.Errorf("can't write response: %w", err).Error()
+		logger.Errorln(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(code)
-	w.Write(body)
 }
 
 // RespondErr is a function to make http error responses.
