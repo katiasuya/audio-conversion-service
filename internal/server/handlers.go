@@ -12,11 +12,10 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
-	"github.com/katiasuya/audio-conversion-service/internal/server/context"
+	ctx "github.com/katiasuya/audio-conversion-service/internal/server/context"
 	"github.com/katiasuya/audio-conversion-service/internal/server/response"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
-	"github.com/katiasuya/audio-conversion-service/internal/validation"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 	log "github.com/sirupsen/logrus"
 )
@@ -62,7 +61,7 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.ContextWithUserID(r.Context(), claimUserID)
+		ctx := ctx.ContextWithUserID(r.Context(), claimUserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -102,7 +101,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := validation.ValidateUserCredentials(req.Username, req.Password); err != nil {
+	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
 		s.logAndRespondErr(w, "invalid user credentials: ", err, http.StatusBadRequest)
 		return
 	}
@@ -194,7 +193,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err = validation.ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		s.logAndRespondErr(w, "invalid request: ", err, http.StatusBadRequest)
 		return
 	}
@@ -207,7 +206,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	s.logger.Debugln("source file uploaded successfully")
 
-	userID, ok := context.UserIDFromContext(r.Context())
+	userID, ok := ctx.UserIDFromContext(r.Context())
 	if !ok {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return
@@ -234,7 +233,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID, ok := context.UserIDFromContext(r.Context())
+	userID, ok := ctx.UserIDFromContext(r.Context())
 	if !ok {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return
