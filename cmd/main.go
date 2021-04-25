@@ -9,5 +9,4 @@ func main() {
 	logger := logging.Init()
 	logger.WithField("package", "main").Infoln("start listening on :8000")
 	logger.WithField("package", "app").Fatalln(app.Run())
-
 }

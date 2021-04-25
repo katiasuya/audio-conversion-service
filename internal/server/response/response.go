@@ -22,6 +22,8 @@ func Respond(w http.ResponseWriter, code int, payload interface{}) {
 		return
 	}
 
+	w.WriteHeader(code)
+
 	_, err = w.Write(body)
 	if err != nil {
 		msg := fmt.Errorf("can't write response: %w", err).Error()
@@ -29,8 +31,6 @@ func Respond(w http.ResponseWriter, code int, payload interface{}) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(code)
 }
 
 // RespondErr is a function to make http error responses.

@@ -38,16 +38,16 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 	logger := logging.Init().WithField("package", "converter")
 
 	if err := c.sem.Acquire(context.Background(), 1); err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't aquire semaphore, %w", err))
 		return
 	}
 
 	if err := c.repo.UpdateRequest(requestID, status[0], ""); err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't update request, %w", err))
 		return
@@ -56,8 +56,8 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 
 	targetFileID, err := uuid.NewRandom()
 	if err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't generate target file uuid, %w", err))
 		return
@@ -69,8 +69,8 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	if err = cmd.Run(); err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't perform conversion, %w", err))
 		return
@@ -79,8 +79,8 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 
 	targetFile, err := os.Open(targetLocation)
 	if err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't generate targetFileID, %w", err))
 		return
@@ -88,8 +88,8 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 
 	err = c.storage.UploadFileToCloud(targetFile, targetFileIDStr, targetFormat)
 	if err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln("can't upload file to s3: ", err)
 		return
@@ -98,16 +98,16 @@ func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, reques
 
 	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln(fmt.Errorf("can't insert audio, %w", err))
 		return
 	}
 
 	if err := c.repo.UpdateRequest(requestID, status[1], targetID); err != nil {
-		if err1 := c.repo.UpdateRequest(requestID, status[2], ""); err1 != nil {
-			logger.Errorln(err1)
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			logger.Errorln(updateErr)
 		}
 		logger.Errorln("can't update request: ", err)
 		return

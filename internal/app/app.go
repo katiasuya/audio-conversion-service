@@ -1,3 +1,4 @@
+// Package app runs the application with needed attributes.
 package app
 
 import (
