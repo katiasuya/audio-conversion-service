@@ -118,7 +118,7 @@ workflows:
   build-workflow: 
     jobs: 
       - test
-      - build-deploy: 
+      - build: 
           requires: 
             - test
       - deploy:
