@@ -97,15 +97,21 @@ jobs:
           command: go build cmd/main.go
       - run: 
           name: Zip binary
-          command: zip function.zip main
+          command: zip function.zip main && cp function.zip workspace/function.zip
+      - persist_to_workspace:
+          root: workspace
+          paths:
+          - function.zip
 
   deploy:
     executor: aws-cli/default
     steps:
+      - attach_workspace:
+        at: /tmp/workspace
       - aws-cli/setup
       - run: 
           name: Deploy to lambda
-          command: aws lambda update-function-code --function-name audio-converter --zip-file fileb://function.zip
+          command: aws lambda update-function-code --function-name audio-converter --zip-file fileb://tmp/workspace/function.zip
 
 workflows:
   version: 2.1
