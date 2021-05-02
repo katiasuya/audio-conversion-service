@@ -1,7 +1,11 @@
 ---
 version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0
+
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.15.8
         auth:
@@ -75,10 +79,34 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
+
+  build:
+    docker:
+      - image: circleci/golang:1.15.8
+    environment: 
+      GOOS: linux
+      CGO_ENABLED: 0
+    steps:
+      - run: 
+          name: Build service
+          command: go build cmd/main.go
+      - run: 
+          name: Zip binary
+          command: zip function.zip main
+
+  deploy:
+    executor: aws-cli/default
+    steps:
+      - run: 
+          name: Deploy to lambda
+          command: zip function.zip mainaws lambda update-function-code --function-name audio-converter --zip-file function.zip
+
 workflows:
   version: 2.1
   build-workflow: 
     jobs: 
+      - test
       - build
-
+      - deploy
 ...
+
