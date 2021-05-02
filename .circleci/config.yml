@@ -102,6 +102,7 @@ jobs:
   deploy:
     executor: aws-cli/default
     steps:
+      - aws-cli/setup
       - run: 
           name: Deploy to lambda
           command: aws lambda update-function-code --function-name audio-converter --zip-file function.zip
@@ -117,6 +118,6 @@ workflows:
       - deploy:
           requires: 
             - build
-            
+
 ...
 
