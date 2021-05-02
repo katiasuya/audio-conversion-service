@@ -98,7 +98,7 @@ jobs:
       - run: 
           name: Zip binary
           command: zip function.zip main
-      - save-cache:
+      - save_cache:
           key: {{ checksum "function.zip" }}
           paths:
           - function.zip
@@ -106,7 +106,7 @@ jobs:
   deploy:
     executor: aws-cli/default
     steps:
-      - restore-cache:
+      - restore_cache:
         key: {{ checksum "function.zip" }}
       - aws-cli/setup
       - run: 
