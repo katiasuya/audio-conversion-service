@@ -3,6 +3,7 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@2.0
+  queue: eddiewebb/queue@volatile
 
 jobs:
   test:
@@ -87,6 +88,10 @@ jobs:
       GOOS: linux
       CGO_ENABLED: 0
     steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: go mod download
       - run: 
           name: Build service
           command: go build cmd/main.go
@@ -99,14 +104,18 @@ jobs:
     steps:
       - run: 
           name: Deploy to lambda
-          command: zip function.zip mainaws lambda update-function-code --function-name audio-converter --zip-file function.zip
+          command: aws lambda update-function-code --function-name audio-converter --zip-file function.zip
 
 workflows:
   version: 2.1
   build-workflow: 
     jobs: 
       - test
-      - build
-      - deploy
+      - build: 
+          requires: 
+            - test
+      - deploy:
+          requires: 
+            - build
 ...
 
