@@ -97,17 +97,17 @@ jobs:
           command: go build cmd/main.go
       - run: 
           name: Zip binary
-          command: zip function.zip main && cp function.zip workspace/function.zip
-      - persist_to_workspace:
-          root: workspace
+          command: zip function.zip main
+      - save-cache:
+          key: {{ checksum "function.zip" }}
           paths:
           - function.zip
 
   deploy:
     executor: aws-cli/default
     steps:
-      - attach_workspace:
-        at: /tmp/workspace
+      - restore-cache:
+        key: {{ checksum "function.zip" }}
       - aws-cli/setup
       - run: 
           name: Deploy to lambda
@@ -118,12 +118,11 @@ workflows:
   build-workflow: 
     jobs: 
       - test
-      - build: 
+      - build-deploy: 
           requires: 
             - test
       - deploy:
           requires: 
             - build
-
 ...
 
