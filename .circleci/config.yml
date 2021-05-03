@@ -111,7 +111,7 @@ jobs:
       - aws-cli/setup
       - run: 
           name: Deploy to lambda
-          command: aws lambda update-function-code --function-name audio-converter --zip-file fileb://tmp/workspace/function.zip
+          command: aws lambda update-function-code --function-name audio-converter --zip-file fileb:///tmp/workspace/function.zip
 
 workflows:
   version: 2.1
