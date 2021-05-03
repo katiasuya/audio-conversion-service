@@ -99,7 +99,7 @@ jobs:
           name: Zip binary
           command: zip function.zip main
       - save_cache:
-          key: {{ checksum "function.zip" }}
+          key:  checksum "function.zip" 
           paths:
             - function.zip
 
@@ -107,7 +107,7 @@ jobs:
     executor: aws-cli/default
     steps:
       - restore_cache:
-          key: {{ checksum "function.zip" }}
+          key:  checksum "function.zip" 
       - aws-cli/setup
       - run: 
           name: Deploy to lambda
