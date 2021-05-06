@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
+	"github.com/katiasuya/audio-conversion-service/internal/logging"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	ctx "github.com/katiasuya/audio-conversion-service/internal/server/context"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
@@ -65,15 +66,22 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) Logging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := logging.ContextWithLogger(r.Context(), s.logger.Logger)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
+	r.Use(s.Logging)
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
-	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
-	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
-	r.HandleFunc("/docs", s.ShowDoc).Methods("GET")
-	// api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
+	r.HandleFunc("/signup", s.SignUp).Methods("POST")
+	r.HandleFunc("/login", s.LogIn).Methods("POST")
+	api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
 	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 	api.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
 	api.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
