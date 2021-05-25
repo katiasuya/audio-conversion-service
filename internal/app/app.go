@@ -14,7 +14,7 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
-	"github.com/katiasuya/audio-conversion-service/internal/logging"
+	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
@@ -23,7 +23,7 @@ import (
 
 // Run runs the application service.
 func Run() error {
-	logger := logging.Init()
+	logger := mycontext.Init()
 
 	var conf config.Config
 	conf.Load()

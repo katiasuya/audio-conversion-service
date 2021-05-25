@@ -11,9 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
-	"github.com/katiasuya/audio-conversion-service/internal/logging"
+	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
-	ctx "github.com/katiasuya/audio-conversion-service/internal/server/context"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
@@ -61,14 +60,14 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := ctx.ContextWithUserID(r.Context(), claimUserID)
+		ctx := mycontext.ContextWithUserID(r.Context(), claimUserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (s *Server) Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := logging.ContextWithLogger(r.Context(), s.logger.Logger)
+		ctx := mycontext.ContextWithLogger(r.Context(), s.logger.Logger)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -214,7 +213,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	s.logger.Debugln("source file uploaded successfully")
 
-	userID, ok := ctx.UserIDFromContext(r.Context())
+	userID, ok := mycontext.UserIDFromContext(r.Context())
 	if !ok {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return
@@ -241,7 +240,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 // RequestHistory shows request history of a user.
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
-	userID, ok := ctx.UserIDFromContext(r.Context())
+	userID, ok := mycontext.UserIDFromContext(r.Context())
 	if !ok {
 		s.logAndRespondErr(w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
 		return

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/katiasuya/audio-conversion-service/internal/logging"
+	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 )
 
 // Respond is a function to make http responses.
 func Respond(w http.ResponseWriter, code int, payload interface{}) {
-	logger := logging.Init().WithField("package", "response")
+	logger := mycontext.Init().WithField("package", "response")
 
 	w.Header().Set("Content-Type", "application/json")
 
