@@ -7,10 +7,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const loggerKey key = 0
+const requestIDKey key = 0
 
-// Init initializes the logger.
-func Init() *log.Logger {
+// InitLogger initializes the logger.
+func InitLogger() *log.Logger {
 	logger := log.New()
 	logger.SetFormatter(&log.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
@@ -19,13 +19,19 @@ func Init() *log.Logger {
 	return logger
 }
 
-// ContextWithLogger adds logger to the context.
-func ContextWithLogger(ctx context.Context, logger *log.Logger) context.Context {
-	return context.WithValue(ctx, loggerKey, logger)
+// ContextWithRequestID adds request id to the context.
+func ContextWithRequestID(ctx context.Context, rqID string) context.Context {
+	return context.WithValue(ctx, requestIDKey, rqID)
 }
 
-// LoggerFromContext retrieves user id from context.
-func LoggerFromContext(ctx context.Context) (*log.Logger, bool) {
-	logger, ok := ctx.Value(loggerKey).(*log.Logger)
-	return logger, ok
+// LoggerFromContext returns alogger with as much context as possible
+func LoggerFromContext(ctx context.Context) *log.Logger {
+	newLogger := InitLogger()
+	if ctx != nil {
+		if ctxRqID, ok := ctx.Value(requestIDKey).(string); ok {
+			newLogger = newLogger.WithField("rqId", ctxRqID).Logger
+		}
+	}
+
+	return newLogger
 }

@@ -23,7 +23,7 @@ import (
 
 // Run runs the application service.
 func Run() error {
-	logger := mycontext.Init()
+	logger := mycontext.InitLogger()
 
 	var conf config.Config
 	conf.Load()

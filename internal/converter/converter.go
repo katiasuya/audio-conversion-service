@@ -35,7 +35,7 @@ func New(sem *semaphore.Weighted, repo *repository.Repository, storage *storage.
 
 // Convert implements audio conversion.
 func (c *Converter) Convert(fileID, filename, sourceFormat, targetFormat, requestID string) {
-	logger := mycontext.Init().WithField("package", "converter")
+	logger := mycontext.InitLogger().WithField("package", "converter")
 
 	if err := c.sem.Acquire(context.Background(), 1); err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {

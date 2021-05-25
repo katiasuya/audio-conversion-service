@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	logger := mycontext.Init()
+	logger := mycontext.InitLogger()
 	logger.WithField("package", "main").Infoln("start listening on :8000")
 	logger.WithField("package", "app").Fatalln(app.Run())
 }

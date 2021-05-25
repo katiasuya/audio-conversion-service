@@ -10,7 +10,7 @@ import (
 
 // Respond is a function to make http responses.
 func Respond(w http.ResponseWriter, code int, payload interface{}) {
-	logger := mycontext.Init().WithField("package", "response")
+	logger := mycontext.InitLogger().WithField("package", "response")
 
 	w.Header().Set("Content-Type", "application/json")
 
