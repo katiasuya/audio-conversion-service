@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
@@ -67,15 +68,18 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 
 	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
-	api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
+	// api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
 	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 	api.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
 	api.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
-func (s *Server) ShowDoc(w http.ResponseWriter, r *http.Request) {
-	res.Respond(w, http.StatusOK, "Showing documentation")
+func (s *Server) ShowDoc(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		Body:       "Showing documentation",
+		StatusCode: 200,
+	}, nil
 }
 
 // SignUp implements user's signing up.
