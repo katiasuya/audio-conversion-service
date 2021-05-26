@@ -57,7 +57,7 @@ func Run() error {
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := server.New(repo, storage, converter, tokenMgr, logger.WithField("package", "server"))
+	server := server.New(repo, storage, converter, tokenMgr)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)

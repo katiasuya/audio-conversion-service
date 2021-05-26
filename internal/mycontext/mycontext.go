@@ -30,6 +30,12 @@ func ContextWithRequestID(ctx context.Context, rqID string) context.Context {
 	return context.WithValue(ctx, requestIDKey, rqID)
 }
 
+// RequestIDFromContext retrieves request id from context.
+func RequestIDFromContext(ctx context.Context) (string, bool) {
+	requestIDctx, ok := ctx.Value(requestIDKey).(string)
+	return requestIDctx, ok
+}
+
 // ContextWithUserID adds user id to the context.
 func ContextWithUserID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, userIDKey, id)
@@ -48,7 +54,7 @@ func LoggerFromContext(ctx context.Context) (newLoggerEntry *log.Entry) {
 	if ctxRqID, ok := ctx.Value(requestIDKey).(string); ok {
 		newLoggerEntry = newLogger.WithField("rqID", ctxRqID)
 	}
-	if ctxUserID, ok := ctx.Value(userIDKey).(string); ok {
+	if ctxUserID, ok := UserIDFromContext(ctx); ok {
 		newLoggerEntry = newLoggerEntry.WithField("userID", ctxUserID)
 	}
 

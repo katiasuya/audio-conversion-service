@@ -1,6 +1,7 @@
 package response
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,8 +10,8 @@ import (
 )
 
 // Respond is a function to make http responses.
-func Respond(w http.ResponseWriter, code int, payload interface{}) {
-	logger := mycontext.InitLogger().WithField("package", "response")
+func Respond(ctx context.Context, w http.ResponseWriter, code int, payload interface{}) {
+	logger := mycontext.LoggerFromContext(ctx).WithField("package", "response")
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -34,7 +35,7 @@ func Respond(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 // RespondErr is a function to make http error responses.
-func RespondErr(w http.ResponseWriter, code int, err error) {
+func RespondErr(ctx context.Context, w http.ResponseWriter, code int, err error) {
 	type error struct {
 		Code    int
 		Message string
@@ -44,5 +45,5 @@ func RespondErr(w http.ResponseWriter, code int, err error) {
 		Code:    code,
 		Message: err.Error(),
 	}
-	Respond(w, code, respErr)
+	Respond(ctx, w, code, respErr)
 }
