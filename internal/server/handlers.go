@@ -14,7 +14,7 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server/context"
-	"github.com/katiasuya/audio-conversion-service/internal/server/response"
+
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
@@ -45,14 +45,14 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 		if len(authHeader) != 2 {
-			response.RespondErr(w, http.StatusUnauthorized, errors.New("malformed token"))
+			res.RespondErr(w, http.StatusUnauthorized, errors.New("malformed token"))
 			return
 		}
 
 		jwtToken := authHeader[1]
 		claimUserID, err := s.tokenMgr.ParseJWT(jwtToken)
 		if err != nil {
-			response.RespondErr(w, http.StatusUnauthorized, err)
+			res.RespondErr(w, http.StatusUnauthorized, err)
 			return
 		}
 
@@ -66,7 +66,7 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
-	r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
+	// r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
 	// api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
 	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
@@ -83,48 +83,57 @@ func (s *Server) ShowDoc(request events.APIGatewayProxyRequest) (events.APIGatew
 }
 
 // SignUp implements user's signing up.
-func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
-	type request struct {
-		Username string
-		Password string
+func (s *Server) SignUp(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if r.HTTPMethod != "POST" {
+		return events.APIGatewayProxyResponse{
+			Body:       "Method not allowed",
+			StatusCode: 405,
+		}, errors.New("method not allowed")
 	}
-	type response struct {
-		ID string `json:"id"`
+
+	type request struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
 	}
 
 	var req request
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		res.RespondErr(w, http.StatusBadRequest, err)
-		return
+	if err := json.Unmarshal([]byte(r.Body), &req); err != nil {
+		return events.APIGatewayProxyResponse{}, err
 	}
-	defer r.Body.Close()
 
 	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
-		res.RespondErr(w, http.StatusBadRequest, err)
-		return
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("Invalid user credentials: %v", err),
+			StatusCode: 400,
+		}, err
 	}
 
 	hash, err := hash.HashPassword(req.Password)
 	if err != nil {
-		res.RespondErr(w, http.StatusInternalServerError, err)
-		return
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("Hashed passwords don't match: %v", err),
+			StatusCode: 500,
+		}, err
 	}
 
 	userID, err := s.repo.InsertUser(req.Username, hash)
 	if err == repository.ErrUserAlreadyExists {
-		res.RespondErr(w, http.StatusConflict, err)
-		return
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("can't insert user: %v", err),
+			StatusCode: 409,
+		}, err
 	}
 	if err != nil {
-		res.RespondErr(w, http.StatusInternalServerError, err)
-		return
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("can't insert user: %v", err),
+			StatusCode: 500,
+		}, err
 	}
 
-	resp := response{
-		ID: userID,
-	}
-
-	res.Respond(w, http.StatusCreated, resp)
+	return events.APIGatewayProxyResponse{
+		Body:       userID,
+		StatusCode: 200,
+	}, nil
 }
 
 // LogIn implements user's logging in.

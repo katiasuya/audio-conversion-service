@@ -23,8 +23,20 @@ Resources:
           Properties:
             Path: /showDocs
             Method: GET
+  SignUpFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: signup/
+      Handler: signup
+      Runtime: go1.x
+      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Events:
+        CatchAll:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /signup
+            Method: POST
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -40,4 +52,14 @@ Outputs:
   ShowDocsFunctionIamRole:
     Description: "Implicit IAM Role created for ShowDocs function"
     Value: !GetAtt ShowDocsFunctionRole.Arn
+  SignUpAPI:
+    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/signup/"
+  SignUpFunction:
+    Description: "First Lambda Function ARN"
+    Value: !GetAtt SignUpFunction.Arn
+  SignUpFunctionIamRole:
+    Description: "Implicit IAM Role created for SignUp function"
+    Value: !GetAtt SignUpFunctionRole.Arn
+
     
