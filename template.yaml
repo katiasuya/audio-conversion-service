@@ -40,3 +40,4 @@ Outputs:
   ShowDocsFunctionIamRole:
     Description: "Implicit IAM Role created for ShowDocs function"
     Value: !GetAtt ShowDocsFunctionRole.Arn
+    
