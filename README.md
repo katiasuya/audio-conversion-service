@@ -70,6 +70,6 @@ Go to `https://www.ffmpeg.org/download.html` and follow the instructions to down
 ## Docker
 
 To run your application in docker, create an `.env` file at the root of the directory 
-with the values, decribed in ### Configuration. 
+with the values, decribed in Configuration section. 
 
 Lastly, run `docker-compose up`. 
