@@ -1,0 +1,43 @@
+version: '3.1'
+
+services:
+
+    postgresql:
+        build:
+            context: ./
+            dockerfile: Dockerfile.db
+        container_name: postgresql
+        env_file: .env
+        restart: always
+        hostname: "postgres.local"
+        ports:
+            - "5432:5432"
+        networks:
+            - internal-network
+        volumes:
+            - postgresql:/var/lib/postgresql/data 
+
+    audio-converter:
+        build:
+            context: ./
+            dockerfile: Dockerfile.service
+        container_name: "audio-converter"
+        env_file: .env
+        restart: always
+        hostname: "converter.local"
+        environment:
+            WAIT_HOSTS: postgresql:5432
+        ports:
+        - "8000:8000"
+        networks:
+        - internal-network
+        depends_on: [postgresql]
+   
+
+networks:
+    internal-network:
+        name: internal-network
+
+volumes:
+    postgresql:
+        driver: local
