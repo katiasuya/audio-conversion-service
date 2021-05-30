@@ -12,24 +12,24 @@ To set the configuration parameters for the application, set the following envir
 
 [1]  
 ```bash
-AUDIO-CONVERTER_HOST=your_host # default is localhost
-AUDIO-CONVERTER_PORT=your_port # default is 5432 
-AUDIO-CONVERTER_USERNAME=your_username  
-AUDIO-CONVERTER_PASSWORD=your_password  
-AUDIO-CONVERTER_DBNAME=audioconverter  
-AUDIO-CONVERTER_SSLMODE=disable  
+HOST=your_host # default is localhost
+PORT=your_port # default is 5432 
+POSTGRES_USER=your_username  
+POSTGRES_PASSWORD=your_password  
+POSTGRES_DB=audioconverter  
+SSLMODE=disable  
 ```
 [2]  
 ```bash
-AUDIO-CONVERTER_PRIVATEKEY="`cat your_private_key_path`"
-AUDIO-CONVERTER_PUBLICKEY="`cat your_public_key_path`" 
+PRIVATEKEY="`cat your_private_key_path`"
+PUBLICKEY="`cat your_public_key_path`" 
 ```
 [3]  
 ```bash
-AUDIO-CONVERTER_ACCESSKEYID=your_access_key_id  
-AUDIO-CONVERTER_SECRETACCESSKEY=your_secret_access_key  
-AUDIO-CONVERTER_REGION=your_region  
-AUDIO-CONVERTER_BUCKET=your_bucket_name  
+AWS_ACCESS_KEY_ID=your_access_key_id  
+AWS_SECRET_ACCESS_KEY=your_secret_access_key  
+AWS_REGION=your_region  
+AWS_BUCKET=your_bucket_name  
 ```
 
 ## DataBase
@@ -66,3 +66,10 @@ environment variables from group [3].
 
 The service uses `ffmpeg` multimedia framework for audio conversion, so it needs to be installed.  
 Go to `https://www.ffmpeg.org/download.html` and follow the instructions to download it for your OS.
+
+## Docker
+
+To run your application in docker, create an `.env` file at the root of the directory 
+with the values, decribed in ### Configuration. 
+
+Lastly, run `docker-compose up`. 
