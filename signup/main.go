@@ -1,19 +1,27 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/katiasuya/audio-conversion-service/internal/app"
-	"github.com/katiasuya/audio-conversion-service/internal/server"
+	"github.com/apex/gateway"
 )
 
-var s *server.Server
-
-func Init() {
-	log.Fatalln(app.Run())
+func main() {
+	http.HandleFunc("/", hello)
+	log.Fatal(gateway.ListenAndServe(":3000", nil))
 }
 
-func main() {
-	lambda.Start(s.SignUp)
+func hello(w http.ResponseWriter, r *http.Request) {
+	// example retrieving values from the api gateway proxy request context.
+	requestContext, ok := gateway.RequestContext(r.Context())
+	if !ok || requestContext.Authorizer["sub"] == nil {
+		fmt.Fprint(w, "Hello World from Go")
+		return
+	}
+
+	userID := requestContext.Authorizer["sub"].(string)
+	fmt.Fprintf(w, "Hello %s from Go", userID)
+
 }

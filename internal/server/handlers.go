@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/apex/gateway"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
@@ -69,6 +70,7 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 	// r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
 	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
 	// api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
+	api.HandleFunc("/", s.TestRequest).Methods("GET")
 	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 	api.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
 	api.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
@@ -82,14 +84,29 @@ func (s *Server) ShowDoc(request events.APIGatewayProxyRequest) (events.APIGatew
 	}, nil
 }
 
-// SignUp implements user's signing up.
-func (s *Server) SignUp(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	if r.HTTPMethod != "POST" {
-		return events.APIGatewayProxyResponse{
-			Body:       "Method not allowed",
-			StatusCode: 405,
-		}, errors.New("method not allowed")
+func (s *Server) TestRequest(w http.ResponseWriter, r *http.Request) {
+	requestContext, ok := gateway.RequestContext(r.Context())
+	if !ok || requestContext.Authorizer["sub"] == nil {
+		fmt.Fprint(w, "Hello World from Go")
+		return
 	}
+
+	userID := requestContext.Authorizer["sub"].(string)
+	fmt.Fprintf(w, "Hello %s from Go", userID)
+}
+
+func createResponse(statusCode int, body string) events.APIGatewayProxyResponse {
+	return events.APIGatewayProxyResponse{
+		StatusCode:        statusCode,
+		Headers:           nil,
+		MultiValueHeaders: nil,
+		Body:              body,
+		IsBase64Encoded:   false,
+	}
+}
+
+// SignUp implements user's signing up.
+func (s *Server) SignUp(r events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
 
 	type request struct {
 		Username string `json:"username"`
@@ -98,42 +115,28 @@ func (s *Server) SignUp(r events.APIGatewayProxyRequest) (events.APIGatewayProxy
 
 	var req request
 	if err := json.Unmarshal([]byte(r.Body), &req); err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return createResponse(500, fmt.Sprintf("can't parse body, %s", err.Error()))
 	}
 
 	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
-		return events.APIGatewayProxyResponse{
-			Body:       fmt.Sprintf("Invalid user credentials: %v", err),
-			StatusCode: 400,
-		}, err
+		return createResponse(400, fmt.Sprintf("Invalid user credentials: %v", err))
 	}
 
 	hash, err := hash.HashPassword(req.Password)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			Body:       fmt.Sprintf("Hashed passwords don't match: %v", err),
-			StatusCode: 500,
-		}, err
+		return createResponse(500, fmt.Sprintf("Hashed passwords don't match: %v", err))
 	}
 
 	userID, err := s.repo.InsertUser(req.Username, hash)
 	if err == repository.ErrUserAlreadyExists {
-		return events.APIGatewayProxyResponse{
-			Body:       fmt.Sprintf("can't insert user: %v", err),
-			StatusCode: 409,
-		}, err
+		return createResponse(409, fmt.Sprintf("can't insert user: %v", err))
+
 	}
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			Body:       fmt.Sprintf("can't insert user: %v", err),
-			StatusCode: 500,
-		}, err
+		return createResponse(500, fmt.Sprintf("can't insert user: %v", err))
 	}
 
-	return events.APIGatewayProxyResponse{
-		Body:       userID,
-		StatusCode: 200,
-	}, nil
+	return createResponse(200, userID)
 }
 
 // LogIn implements user's logging in.
