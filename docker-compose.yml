@@ -12,8 +12,6 @@ services:
         hostname: "postgres.local"
         ports:
             - "5432:5432"
-        networks:
-            - internal-network
         volumes:
             - postgresql:/var/lib/postgresql/data 
 
@@ -28,15 +26,8 @@ services:
         environment:
             WAIT_HOSTS: postgresql:5432
         ports:
-        - "8000:8000"
-        networks:
-        - internal-network
+            - "8000:8000"
         depends_on: [postgresql]
-   
-
-networks:
-    internal-network:
-        name: internal-network
 
 volumes:
     postgresql:
