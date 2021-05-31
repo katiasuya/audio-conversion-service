@@ -1,10 +1,10 @@
 FROM golang:1.16-alpine AS build
 WORKDIR /src
 COPY . .
-RUN CGO_ENABLED=0 go build -o /bin/app cmd/main.go
+RUN go mod download && CGO_ENABLED=0 go build -o /bin/app cmd/main.go
 
-FROM golang:1.16-alpine
+FROM alpine:latest
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
-RUN chmod +x /wait && apk add  --no-cache ffmpeg
+RUN chmod +x /wait && apk add  --no-cache ffmpeg && apk --no-cache add ca-certificates
 COPY --from=build /bin/app /bin/app
 CMD /wait && /bin/app
