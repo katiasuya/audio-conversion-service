@@ -5,6 +5,6 @@ RUN go mod download && CGO_ENABLED=0 go build -o /bin/app cmd/main.go
 
 FROM alpine:3.13
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
-RUN chmod +x /wait && apk add  --no-cache ffmpeg && apk --no-cache add ca-certificates
+RUN chmod +x /wait && apk add --no-cache ffmpeg
 COPY --from=build /bin/app /bin/app
 CMD /wait && /bin/app
