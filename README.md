@@ -1,6 +1,6 @@
 # Audio-converter
 
-Audio-converter is a service that exposes a RESTful API to convert WAV to MP3 and vice versa.   
+Audio-converter is a service that exposes a RESTful API to convert WAV to MP3 and vice versa.
 
 ## Architecture Diagram
 
@@ -60,7 +60,7 @@ Then set corresponding environment variables from group [2].
 
 To store original and converted files for the service, AWS Simple Storage Service (Amazon S3) is used.  
 For that, configure the credentials of the user with access to the bucket and set corresponding  
-environment variables from group [3].    
+environment variables from group [3].  
 
 ## Conversion
 
@@ -69,7 +69,7 @@ Go to `https://www.ffmpeg.org/download.html` and follow the instructions to down
 
 ## Docker
 
-To run your application in docker, create an `.env` file at the root of the directory 
-with the values, decribed in Configuration section (the HOST value must be `postgres.local`). 
+To run your application in docker, create an `.env` file at the root of the directory  
+with the values, decribed in Configuration section (the HOST value must be `postgres.local`).  
 
-Lastly, run `docker-compose up`. 
+Lastly, run `docker-compose up`.  
