@@ -1,8 +1,6 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,13 +17,13 @@ import (
 )
 
 // Run runs the application service.
-func Run() error {
+func Run() (*server.Server, error) {
 	var conf config.Config
 	conf.Load()
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer db.Close()
 	repo := repository.New(db)
@@ -36,6 +34,9 @@ func Run() error {
 			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
 	storage := storage.New(svc, conf.Bucket, uploader)
@@ -51,5 +52,5 @@ func Run() error {
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
 
-	return http.ListenAndServe(":8000", r)
+	return server, nil
 }
