@@ -13,4 +13,5 @@ clean:
 
 build:
 	GOOS=linux GOARCH=amd64 
-	go build -o signup/signup ./cmd/main.go
+	go build -o showDocs/showDocs ./showDocs/main.go
+	go build -o signup/signup ./signup/main.go
