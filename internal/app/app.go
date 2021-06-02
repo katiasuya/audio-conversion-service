@@ -1,7 +1,8 @@
 package app
 
 import (
-	"github.com/apex/gateway"
+	"net/http"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -35,9 +36,6 @@ func Run() error {
 			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
 		},
 	)
-	if err != nil {
-		return err
-	}
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
 	storage := storage.New(svc, conf.Bucket, uploader)
@@ -53,5 +51,5 @@ func Run() error {
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
 
-	return gateway.ListenAndServe(":3000", r)
+	return http.ListenAndServe(":8000", r)
 }
