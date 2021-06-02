@@ -95,19 +95,20 @@ func (s *Server) TestRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello %s from Go", userID)
 }
 
-func createResponse(statusCode int, body string) events.APIGatewayProxyResponse {
+func createResponse(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
 	return events.APIGatewayProxyResponse{
 		StatusCode:        statusCode,
 		Headers:           nil,
 		MultiValueHeaders: nil,
 		Body:              body,
 		IsBase64Encoded:   false,
-	}
+	}, nil
 }
 
-// SignUp implements user's signing up.
-func (s *Server) SignUp(r events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
+var S *Server
 
+// SignUp implements user's signing up.
+func SignUp(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	type request struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -127,16 +128,20 @@ func (s *Server) SignUp(r events.APIGatewayProxyRequest) events.APIGatewayProxyR
 		return createResponse(500, fmt.Sprintf("Hashed passwords don't match: %v", err))
 	}
 
-	userID, err := s.repo.InsertUser(req.Username, hash)
+	fmt.Println("hash ", hash)
+
+	fmt.Println("here01")
+	userID, err := S.repo.InsertUser(req.Username, hash)
+	fmt.Println("here02")
+
 	if err == repository.ErrUserAlreadyExists {
 		return createResponse(409, fmt.Sprintf("can't insert user: %v", err))
-
 	}
 	if err != nil {
 		return createResponse(500, fmt.Sprintf("can't insert user: %v", err))
 	}
 
-	return createResponse(200, userID)
+	return createResponse(200, fmt.Sprintf("Hi, %s", userID))
 }
 
 // LogIn implements user's logging in.
