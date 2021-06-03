@@ -35,6 +35,8 @@ BEGIN
     END IF;
 END$$;
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA converter;
+
 CREATE TABLE IF NOT EXISTS converter."user"(
 id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 username TEXT UNIQUE NOT NULL,
