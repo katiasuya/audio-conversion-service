@@ -4,75 +4,59 @@ Description: >
   sam
   
   Sample SAM Template for sam
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
 Globals:
   Function:
-    Timeout: 5
+    Timeout: 10
+    Runtime: go1.x
+    Environment:
+      Variables:
+        REMOTE_HOST: REMOTE_HOST
+        POSTGRES_PORT: POSTGRES_PORT
+        POSTGRES_USER: POSTGRES_USER
+        POSTGRES_PASSWORD: POSTGRES_PASSWORD
+        POSTGRES_DB: POSTGRES_DB
+        SSLMODE: SSLMODE
+        PRIVATEKEY: PRIVATEKEY
+        PUBLICKEY: PUBLICKEY
+        AWS_BUCKET: AWS_BUCKET
 
 Resources:
-  DBFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  AudioConverterFunction:
+    Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: db/
-      Handler: db
-      Runtime: go1.x
-      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      CodeUri: cmd/
+      Handler: cmd
+      Tracing: Active
       Events:
-        CatchAll:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        SignUp:
+          Type: Api 
           Properties:
-            Path: /db
-            Method: GET
-  # ShowDocsFunction:
-  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-  #   Properties:
-  #     CodeUri: showDocs/
-  #     Handler: showDocs
-  #     Runtime: go1.x
-  #     Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
-  #     Events:
-  #       CatchAll:
-  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-  #         Properties:
-  #           Path: /showDocs
-  #           Method: GET
-  # SignUpFunction:
-  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-  #   Properties:
-  #     CodeUri: signup/
-  #     Handler: signup
-  #     Runtime: go1.x
-  #     Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
-  #     Events:
-  #       CatchAll:
-  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-  #         Properties:
-  #           Path: /signup
-  #           Method: POST
-  #     Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-
-# Outputs:
-#   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-#   # Find out more about other implicit resources you can reference within SAM
-#   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-
-#   ShowDocsAPI:
-#     Description: "API Gateway endpoint URL for Prod environment for First Function"
-#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/showDocs/"
-#   ShowDocsFunction:
-#     Description: "First Lambda Function ARN"
-#     Value: !GetAtt ShowDocsFunction.Arn
-#   ShowDocsFunctionIamRole:
-#     Description: "Implicit IAM Role created for ShowDocs function"
-#     Value: !GetAtt ShowDocsFunctionRole.Arn
-#   SignUpAPI:
-#     Description: "API Gateway endpoint URL for Prod environment for First Function"
-#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/signup/"
-#   SignUpFunction:
-#     Description: "First Lambda Function ARN"
-#     Value: !GetAtt SignUpFunction.Arn
-#   SignUpFunctionIamRole:
-#     Description: "Implicit IAM Role created for SignUp function"
-#     Value: !GetAtt SignUpFunctionRole.Arn
-
+            Path: /signup
+            Method: POST
+        LogIn: 
+          Type: Api 
+          Properties:
+            Path: /login
+            Method: POST
+        Docs: 
+          Type: Api 
+          Properties:
+            Path: /docs
+            Method: GET    
+        Conversion: 
+          Type: Api 
+          Properties:
+            Path: /conversion
+            Method: POST    
+        History: 
+          Type: Api 
+          Properties:
+            Path: /request_history
+            Method: GET  
+        Download: 
+          Type: Api 
+          Properties:
+            Path: /download_audio/{id}
+            Method: GET  
     

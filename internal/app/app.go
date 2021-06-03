@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,13 +18,13 @@ import (
 )
 
 // Run runs the application service.
-func Run() (*server.Server, error) {
+func Run() error {
 	var conf config.Config
 	conf.Load()
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer db.Close()
 	repo := repository.New(db)
@@ -35,7 +36,7 @@ func Run() (*server.Server, error) {
 		},
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
@@ -52,5 +53,5 @@ func Run() (*server.Server, error) {
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
 
-	return server, nil
+	return gateway.ListenAndServe(":3000", r)
 }

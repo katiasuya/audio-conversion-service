@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/apex/gateway"
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
@@ -67,81 +65,62 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
-	// r.HandleFunc("/user/signup", s.SignUp).Methods("POST")
-	r.HandleFunc("/user/login", s.LogIn).Methods("POST")
-	// api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
-	api.HandleFunc("/", s.TestRequest).Methods("GET")
+	r.HandleFunc("/signup", s.SignUp).Methods("POST")
+	r.HandleFunc("/login", s.LogIn).Methods("POST")
+	api.HandleFunc("/docs", s.ShowDoc).Methods("GET")
 	api.HandleFunc("/conversion", s.ConversionRequest).Methods("POST")
 	api.HandleFunc("/request_history", s.RequestHistory).Methods("GET")
 	api.HandleFunc("/download_audio/{id}", s.Download).Methods("GET")
 }
 
 // ShowDoc shows service documentation.
-func (s *Server) ShowDoc(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		Body:       "Showing documentation",
-		StatusCode: 200,
-	}, nil
+func (s *Server) ShowDoc(w http.ResponseWriter, r *http.Request) {
+	res.Respond(w, http.StatusOK, "Showing documentation")
 }
-
-func (s *Server) TestRequest(w http.ResponseWriter, r *http.Request) {
-	requestContext, ok := gateway.RequestContext(r.Context())
-	if !ok || requestContext.Authorizer["sub"] == nil {
-		fmt.Fprint(w, "Hello World from Go")
-		return
-	}
-
-	userID := requestContext.Authorizer["sub"].(string)
-	fmt.Fprintf(w, "Hello %s from Go", userID)
-}
-
-func createResponse(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		StatusCode:        statusCode,
-		Headers:           nil,
-		MultiValueHeaders: nil,
-		Body:              body,
-		IsBase64Encoded:   false,
-	}, nil
-}
-
-var S *Server
 
 // SignUp implements user's signing up.
-func SignUp(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	type request struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username string
+		Password string
+	}
+	type response struct {
+		ID string `json:"id"`
 	}
 
 	var req request
-	if err := json.Unmarshal([]byte(r.Body), &req); err != nil {
-		return createResponse(500, fmt.Sprintf("can't parse body, %s", err.Error()))
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		res.RespondErr(w, http.StatusBadRequest, err)
+		return
 	}
+	defer r.Body.Close()
 
 	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
-		return createResponse(400, fmt.Sprintf("Invalid user credentials: %v", err))
+		res.RespondErr(w, http.StatusBadRequest, err)
+		return
 	}
 
 	hash, err := hash.HashPassword(req.Password)
 	if err != nil {
-		return createResponse(500, fmt.Sprintf("Hashed passwords don't match: %v", err))
+		res.RespondErr(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	fmt.Println("hash ", hash)
-
-	fmt.Println("here01")
-	userID, err := S.repo.InsertUser(req.Username, hash)
-	fmt.Println("here02")
-
+	userID, err := s.repo.InsertUser(req.Username, hash)
 	if err == repository.ErrUserAlreadyExists {
-		return createResponse(409, fmt.Sprintf("can't insert user: %v", err))
+		res.RespondErr(w, http.StatusConflict, err)
+		return
 	}
 	if err != nil {
-		return createResponse(500, fmt.Sprintf("can't insert user: %v", err))
+		res.RespondErr(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	return createResponse(200, fmt.Sprintf("Hi, %s", userID))
+	resp := response{
+		ID: userID,
+	}
+
+	res.Respond(w, http.StatusCreated, resp)
 }
 
 // LogIn implements user's logging in.
@@ -171,6 +150,8 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("here2")
+
 	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
 		res.RespondErr(w, http.StatusUnauthorized, errInvalidUsernameOrPassword)
 		return
@@ -191,6 +172,7 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 
 // ConversionRequest creates a request for audio conversion.
 func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("conv1")
 	sourceFile, header, err := r.FormFile("file")
 	if err != nil {
 		res.RespondErr(w, http.StatusBadRequest, err)
