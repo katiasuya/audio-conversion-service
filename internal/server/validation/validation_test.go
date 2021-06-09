@@ -14,37 +14,37 @@ func TestValidateUserCredentials(t *testing.T) {
 			name:     "missing username",
 			username: "",
 			password: "qwerty123",
-			exp:      ErrMissingUsername,
+			exp:      errMissingUsername,
 		},
 		{
 			name:     "missing password",
 			username: "jonathan",
 			password: "",
-			exp:      ErrMissingPassword,
+			exp:      errMissingPassword,
 		},
 		{
 			name:     "invalid username length",
 			username: "john",
 			password: "1",
-			exp:      ErrInvalidLength,
+			exp:      errInvalidLength,
 		},
 		{
 			name:     "invalid password length",
 			username: "jonathan",
 			password: "123",
-			exp:      ErrInvalidLength,
+			exp:      errInvalidLength,
 		},
 		{
 			name:     "invalid username chars",
 			username: "joh n123",
 			password: "1",
-			exp:      ErrInvalidChars,
+			exp:      errInvalidChars,
 		},
 		{
 			name:     "invalid password chars",
 			username: "jonathan",
 			password: "qwerty&123",
-			exp:      ErrInvalidChars,
+			exp:      errInvalidChars,
 		},
 	}
 

@@ -15,33 +15,33 @@ const invalidChars = `:;<>\{}[]+=?&," `
 var formats = map[string]string{"mp3": "audio/mpeg", "wav": "audio/wave"}
 
 var (
-	ErrMissingUsername = errors.New("username is missing")
-	ErrMissingPassword = errors.New("password is missing")
-	ErrInvalidLength   = fmt.Errorf("invalid length: username and password must be from %d to %d characters", minLength, maxLength)
-	ErrInvalidChars    = fmt.Errorf("invalid character(s): you can't use %sor space character(s)", invalidChars)
+	errMissingUsername = errors.New("username is missing")
+	errMissingPassword = errors.New("password is missing")
+	errInvalidLength   = fmt.Errorf("invalid length: username and password must be from %d to %d characters", minLength, maxLength)
+	errInvalidChars    = fmt.Errorf("invalid character(s): you can't use %sor space character(s)", invalidChars)
 )
 
 // ValidateUserCredentials validates user's credentials.
 func ValidateUserCredentials(username, password string) error {
 	if username == "" {
-		return ErrMissingUsername
+		return errMissingUsername
 	}
 	if len(username) < minLength || len(username) > maxLength {
-		return ErrInvalidLength
+		return errInvalidLength
 	}
 
 	if containsInvalidChars(username) {
-		return ErrInvalidChars
+		return errInvalidChars
 	}
 
 	if password == "" {
-		return ErrMissingPassword
+		return errMissingPassword
 	}
 	if len(password) < minLength || len(password) > maxLength {
-		return ErrInvalidLength
+		return errInvalidLength
 	}
 	if containsInvalidChars(password) {
-		return ErrInvalidChars
+		return errInvalidChars
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 	}
 
 	if containsInvalidChars(name) {
-		return ErrInvalidChars
+		return errInvalidChars
 	}
 
 	return nil
