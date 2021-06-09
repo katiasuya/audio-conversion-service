@@ -15,7 +15,6 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
-	"github.com/katiasuya/audio-conversion-service/internal/server/validation"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 	log "github.com/sirupsen/logrus"
@@ -132,7 +131,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := validation.ValidateUserCredentials(req.Username, req.Password); err != nil {
+	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
 		logAndRespondErr(logger, w, "invalid user credentials: ", err, http.StatusBadRequest)
 		return
 	}
@@ -236,7 +235,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err = validation.ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		logAndRespondErr(logger, w, "invalid request: ", err, http.StatusBadRequest)
 		return
 	}
