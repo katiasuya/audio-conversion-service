@@ -39,9 +39,11 @@ jobs:
       ################################
       # Run Linter against code base #
       ################################
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2.5.2
-        with:
-          only-new-issues: false
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 ...
