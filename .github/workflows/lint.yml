@@ -35,24 +35,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: install dependencies
-        run: sudo apt update && sudo apt install libsnmp-dev    
-
-
       ################################
       # Run Linter against code base #
       ################################
-      # - name: Lint Code Base
-      #   uses: github/super-linter@v3
-      #   env:
-      #     VALIDATE_ALL_CODEBASE: true
-
-      #     DEFAULT_BRANCH: main
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2.5.2
-        with:
-          only-new-issues: true
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 ...
