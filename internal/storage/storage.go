@@ -1,51 +1,83 @@
-// Package storage provides logic to communicate with file storage.
+// Package storage provides logic to communicate with aws s3 cloud object storage.
 package storage
 
 import (
+	"fmt"
 	"io"
 	"os"
-	"path/filepath"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
 )
 
-// Storage represents a directory path where all the files will be downloaded to.
+const LocationTemplate = "/tmp/%s.%s"
+
+// Storage represents aws s3 client.
 type Storage struct {
-	Path string
+	svc      *s3.S3
+	bucket   string
+	uploader *s3manager.Uploader
 }
 
-// New creates a new storage in the given directory path.
-func New(path string) *Storage {
+// New creates a new storage with the given client.
+func New(svc *s3.S3, bucket string, uploader *s3manager.Uploader) *Storage {
 	return &Storage{
-		Path: path,
+		svc:      svc,
+		bucket:   bucket,
+		uploader: uploader,
 	}
 }
 
-// UploadFile stores request file in the storage.
+// UploadFile uploads request file.
 func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error) {
 	fileID, err := uuid.NewRandom()
 	if err != nil {
+		return "", fmt.Errorf("can't generate file uuid, %w", err)
+	}
+	fileIDStr := fileID.String()
+
+	if err := s.UploadFileToCloud(sourceFile, fileIDStr, format); err != nil {
 		return "", err
 	}
 
-	fileLocation := filepath.Join(s.Path, fileID.String()+"."+format)
-
-	file, err := os.Create(fileLocation)
+	file, err := os.Create(fmt.Sprintf(LocationTemplate, fileIDStr, format))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("can't create file, %w", err)
 	}
 	defer file.Close()
-
 	if _, err := io.Copy(file, sourceFile); err != nil {
-		return "", err
+		return "", fmt.Errorf("can't copy file, %w", err)
 	}
 
-	return fileID.String(), nil
+	return fileIDStr, nil
 }
 
-// DownloadFile downloads the file by its id from the storage.
-func (s *Storage) DownloadFile(fileID, format string) (io.Reader, error) {
-	fileLocation := filepath.Join(s.Path, fileID+"."+format)
+// UploadFileToCloud uploads request file to s3 cloud storage.
+func (s *Storage) UploadFileToCloud(sourceFile io.Reader, fileID, format string) error {
+	_, err := s.uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(fileID + "." + format),
+		Body:   sourceFile,
+	})
+	if err != nil {
+		return fmt.Errorf("can't upload file to S3, %w", err)
+	}
+	return nil
+}
 
-	return os.Open(fileLocation)
+// GetDownloadURL generates URL to download the file from the storage.
+func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
+	req, _ := s.svc.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(fileID + "." + format),
+	})
+	urlStr, err := req.Presign(15 * time.Minute)
+	if err != nil {
+		return "", fmt.Errorf("can't create requets's presigned URL, %w", err)
+	}
+
+	return urlStr, err
 }
