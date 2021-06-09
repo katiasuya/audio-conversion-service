@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -250,18 +249,18 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := s.storage.DownloadFile(audioInfo.Location, audioInfo.Format)
+	fileURL, err := s.storage.GetDownloadURL(audioInfo.Location, audioInfo.Format)
 	if err != nil {
 		res.RespondErr(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", formats[audioInfo.Format])
-	w.Header().Set("Content-Disposition", "attachment; filename="+audioInfo.Name+"."+audioInfo.Format)
-
-	_, err = io.Copy(w, file)
-	if err != nil {
-		res.RespondErr(w, http.StatusInternalServerError, err)
-		return
+	type response struct {
+		FileURL string `json:"fileURL"`
 	}
+	downloadResp := response{
+		FileURL: fileURL,
+	}
+
+	res.Respond(w, http.StatusOK, downloadResp)
 }
