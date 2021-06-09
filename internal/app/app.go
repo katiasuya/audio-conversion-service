@@ -4,6 +4,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -14,26 +15,29 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
-	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/semaphore"
 )
 
 // Run runs the application service.
 func Run() error {
-	logger := mycontext.InitLogger()
+	logger := log.New()
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(log.DebugLevel)
 
 	var conf config.Config
 	conf.Load()
-	logger.WithField("package", "app").Infoln("configuration data loaded successfully")
+	logger.WithField("package", "app").Infoln("configuration data loaded")
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
 		return fmt.Errorf("can't connect to database: %w", err)
 	}
 	defer db.Close()
+
 	logger.WithField("package", "app").Infoln("connected to database")
 	repo := repository.New(db)
 
@@ -57,10 +61,12 @@ func Run() error {
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := server.New(repo, storage, converter, tokenMgr)
+	server := server.New(repo, storage, converter, tokenMgr, logger)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
+
+	logger.WithField("package", "app").Infoln("start listening on :8000")
 
 	return http.ListenAndServe(":8000", r)
 }

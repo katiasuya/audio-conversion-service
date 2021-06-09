@@ -1,41 +1,33 @@
 package response
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-
-	"github.com/katiasuya/audio-conversion-service/internal/mycontext"
 )
 
-// Respond is a function to make http responses.
-func Respond(ctx context.Context, w http.ResponseWriter, code int, payload interface{}) {
-	logger := mycontext.LoggerFromContext(ctx).WithField("package", "response")
-
-	w.Header().Set("Content-Type", "application/json")
-
+// Respond is a function to send http responses.
+func Respond(w http.ResponseWriter, code int, payload interface{}) {
 	body, err := json.Marshal(payload)
 	if err != nil {
-		msg := fmt.Errorf("can't marshal the given payload: %w", err).Error()
-		logger.Errorln(msg)
-		http.Error(w, msg, http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("can't marshal the given payload: %v", err), http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-
 	_, err = w.Write(body)
 	if err != nil {
-		msg := fmt.Errorf("can't write response: %w", err).Error()
-		logger.Errorln(msg)
-		http.Error(w, msg, http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("can't write response: %v", err), http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 }
 
 // RespondErr is a function to make http error responses.
-func RespondErr(ctx context.Context, w http.ResponseWriter, code int, err error) {
+func RespondErr(w http.ResponseWriter, code int, err error) {
 	type error struct {
 		Code    int
 		Message string
@@ -45,5 +37,6 @@ func RespondErr(ctx context.Context, w http.ResponseWriter, code int, err error)
 		Code:    code,
 		Message: err.Error(),
 	}
-	Respond(ctx, w, code, respErr)
+
+	Respond(w, code, respErr)
 }

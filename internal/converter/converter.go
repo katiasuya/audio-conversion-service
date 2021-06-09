@@ -3,6 +3,7 @@ package converter
 
 import (
 	"context"
+	"log"
 
 	"fmt"
 	"os"
@@ -35,7 +36,12 @@ func New(sem *semaphore.Weighted, repo *repository.Repository, storage *storage.
 
 // Convert implements audio conversion.
 func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat, targetFormat, requestID string) {
-	logger := mycontext.LoggerFromContext(ctx).WithField("package", "converter")
+	ctxLogger, ok := mycontext.LoggerFromContext(ctx)
+	if !ok {
+		log.Fatal("can't get logger from context in Converter")
+		return
+	}
+	logger := ctxLogger.WithField("package", "converter")
 
 	if err := c.sem.Acquire(context.Background(), 1); err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
