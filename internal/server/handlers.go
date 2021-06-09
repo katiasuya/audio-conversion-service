@@ -100,7 +100,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash, err := hash.HashPassword(req.Password)
+	hash, err := hash.PasswordHash(req.Password)
 	if err != nil {
 		res.RespondErr(w, http.StatusInternalServerError, err)
 		return
