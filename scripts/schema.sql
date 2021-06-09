@@ -13,7 +13,7 @@ BEGIN
         EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE audioconverter TO %I', _user);
     END IF;
 END;
-$$; 
+$$;
 
 SELECT pg_temp.create_user(:'user_var',:'password_var');
 
