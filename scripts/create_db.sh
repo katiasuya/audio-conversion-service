@@ -3,7 +3,7 @@
 echo 'Please, enter postgres password:'
 read  -rs PASSWORD
 echo 'Please, enter username:'
-read  DB_USERNAME
+read  -r DB_USERNAME
 echo 'Please, enter password:'
 read  -rs DB_PASSWORD
 
