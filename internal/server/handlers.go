@@ -344,5 +344,4 @@ func logAndRespondErr(logger *log.Entry, w http.ResponseWriter, wrapper string, 
 func cantGetLoggerFromContext(w http.ResponseWriter, location string) {
 	log.Errorln(fmt.Sprintf("%v in %s", errCantGetLoggerFomContext, location))
 	res.RespondErr(w, http.StatusInternalServerError, errCantGetLoggerFomContext)
-	return
 }
