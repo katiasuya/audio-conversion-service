@@ -22,8 +22,9 @@ import (
 
 var (
 	errInvalidUsernameOrPassword = errors.New("invalid username or password")
-	errCantGetUserIDFomContext   = errors.New("can't get user id from context")
-	errCantGetLoggerFomContext   = errors.New("can't get logger from context")
+
+	errCantGetUserIDFomContext = errors.New("can't get user id from context")
+	errCantGetLoggerFomContext = errors.New("can't get logger from context")
 )
 
 // Server represents application server.
@@ -77,7 +78,7 @@ func (s *Server) LoggingWithRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rqID, err := uuid.NewRandom()
 		if err != nil {
-			errMsg := fmt.Errorf("can't generate request id"+": %w", err)
+			errMsg := fmt.Errorf("can't generate request id"+": %v", err)
 			log.Errorln(errMsg)
 			res.RespondErr(w, http.StatusInternalServerError, errMsg)
 			return
@@ -340,8 +341,8 @@ func logAndRespondErr(logger *log.Entry, w http.ResponseWriter, wrapper string, 
 	res.RespondErr(w, code, errMsg)
 }
 
-func cantGetLoggerFromContext(w http.ResponseWriter, where string) {
-	log.Errorln(fmt.Sprintf("%v in %s", errCantGetLoggerFomContext, where))
+func cantGetLoggerFromContext(w http.ResponseWriter, location string) {
+	log.Errorln(fmt.Sprintf("%v in %s", errCantGetLoggerFomContext, location))
 	res.RespondErr(w, http.StatusInternalServerError, errCantGetLoggerFomContext)
 	return
 }
