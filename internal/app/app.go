@@ -2,9 +2,9 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -15,30 +15,28 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
+	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/semaphore"
 )
 
 // Run runs the application service.
 func Run() error {
-	logger := log.New()
-	logger.SetOutput(os.Stdout)
-	logger.SetLevel(log.DebugLevel)
+	ctx := context.Background()
 
 	var conf config.Config
 	conf.Load()
-	logger.WithField("package", "app").Infoln("configuration data loaded")
+	logger.Info(ctx, "configuration data loaded")
 
 	db, err := repository.NewPostgresDB(&conf)
 	if err != nil {
 		return fmt.Errorf("can't connect to database: %w", err)
 	}
 	defer db.Close()
+	logger.Info(ctx, "connected to database")
 
-	logger.WithField("package", "app").Infoln("connected to database")
 	repo := repository.New(db)
 
 	sess, err := session.NewSession(
@@ -50,10 +48,11 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("can't create new session: %w", err)
 	}
+
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
 	storage := storage.New(svc, conf.Bucket, uploader)
-	logger.WithField("package", "app").Infoln("cloud storage initialized successfully")
+	logger.Info(ctx, "cloud storage initialized successfully")
 
 	const maxRequests = 10
 	sem := semaphore.NewWeighted(maxRequests)
@@ -61,12 +60,12 @@ func Run() error {
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := server.New(repo, storage, converter, tokenMgr, logger)
+	server := server.New(repo, storage, converter, tokenMgr)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
 
-	logger.WithField("package", "app").Infoln("start listening on :8000")
+	logger.Info(ctx, "start listening on :8000")
 
 	return http.ListenAndServe(":8000", r)
 }

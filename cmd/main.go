@@ -1,12 +1,12 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"context"
 
 	"github.com/katiasuya/audio-conversion-service/internal/app"
+	"github.com/katiasuya/audio-conversion-service/internal/logger"
 )
 
 func main() {
-	logger := log.New()
-	logger.WithField("package", "app").Fatalln(app.Run())
+	logger.Fatal(context.Background(), app.Run())
 }
