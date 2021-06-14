@@ -11,11 +11,11 @@ Globals:
     Runtime: go1.x
     Environment:
       Variables:
-        REMOTE_HOST: REMOTE_HOST
+        POSTGRES_HOST: POSTGRES_HOST
         POSTGRES_PORT: POSTGRES_PORT
         POSTGRES_USER: POSTGRES_USER
         POSTGRES_PASSWORD: POSTGRES_PASSWORD
-        POSTGRES_DB: POSTGRES_DB
+        POSTGRES_DBNAME: "POSTGRES_DBNAME"
         SSLMODE: SSLMODE
         PRIVATEKEY: PRIVATEKEY
         PUBLICKEY: PUBLICKEY
@@ -59,4 +59,17 @@ Resources:
           Properties:
             Path: /download_audio/{id}
             Method: GET  
+
+# Outputs:
+
+#   AudioConverterAPI:
+#     Description: "API Gateway endpoint URL for Prod environment for Audio Converter Function"
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/converter/"
+#   AudioConverterFunction:
+#     Description: "First Lambda Function ARN"
+#     Value: !GetAtt AudioConverterFunction.Arn
+#   AudioConverterFunctionIamRole:
+#     Description: "Implicit IAM Role created for AudioConverter function"
+#     Value: !GetAtt AudioConverterFunctionRole.Arn
+
     

@@ -150,8 +150,6 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("here2")
-
 	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
 		res.RespondErr(w, http.StatusUnauthorized, errInvalidUsernameOrPassword)
 		return
@@ -172,7 +170,6 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 
 // ConversionRequest creates a request for audio conversion.
 func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("conv1")
 	sourceFile, header, err := r.FormFile("file")
 	if err != nil {
 		res.RespondErr(w, http.StatusBadRequest, err)
