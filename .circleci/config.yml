@@ -70,8 +70,10 @@ jobs:
       #       -timeout 1m
       - run:
           name: Validate service is working by auth
-          command: >-
-            curl https://lv40l2wwa6.execute-api.us-east-2.amazonaws.com/Prod/showDocs  
+          command: >- 
+            curl -X POST --header "Content-Type: application/json" 
+            -d '{"username":"TestUser", "password":"qwerty1234"}'
+            https://to3npfe976.execute-api.us-east-2.amazonaws.com/Prod/signup
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output

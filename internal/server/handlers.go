@@ -75,7 +75,7 @@ func (s *Server) RegisterRoutes(r *mux.Router) {
 
 // ShowDoc shows service documentation.
 func (s *Server) ShowDoc(w http.ResponseWriter, r *http.Request) {
-	res.Respond(w, http.StatusOK, "Showing documentation")
+	res.Respond(w, http.StatusOK, "Showing app documentation")
 }
 
 // SignUp implements user's signing up.

@@ -5,6 +5,17 @@ Description: >
   
   Sample SAM Template for sam
 
+# Parameters:
+#   User:
+#     Type: AWS::SSM::Parameter::Value<String>
+#     Default: '{{resolve:ssm:pg_user:1}}'   
+#   Host:
+#     Type: AWS::SSM::Parameter::Value<String>
+#     Default: '{{resolve:ssm:pg_host:1}}'   
+#   Port:
+#     Type: AWS::SSM::Parameter::Value<String>
+#     Default: '{{resolve:ssm:pg_port:1}}'   
+
 Globals:
   Function:
     Timeout: 10
@@ -20,8 +31,8 @@ Globals:
         PRIVATEKEY: '{{resolve:ssm:privatekey:1}}' 
         PUBLICKEY: '{{resolve:ssm:publickey:1}}' 
         AWS_BUCKET: '{{resolve:ssm:s3_bucket:1}}'  
-        AWS_ACCESSKEYID: '{{resolve:ssm:access_key_id:1}}'  
-        AWS_SECRETACCESSKEY: '{{resolve:ssm:secret_access_key:1}}' 
+        # AWS_ACCESSKEYID: '{{resolve:ssm:access_key_id:1}}'  
+        # AWS_SECRETACCESSKEY: '{{resolve:ssm:secret_access_key:1}}' 
 
 Resources:
   AudioConverterFunction:
