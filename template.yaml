@@ -11,15 +11,17 @@ Globals:
     Runtime: go1.x
     Environment:
       Variables:
-        POSTGRES_HOST: POSTGRES_HOST
-        POSTGRES_PORT: POSTGRES_PORT
-        POSTGRES_USER: POSTGRES_USER
-        POSTGRES_PASSWORD: POSTGRES_PASSWORD
-        POSTGRES_DBNAME: "POSTGRES_DBNAME"
-        SSLMODE: SSLMODE
-        PRIVATEKEY: PRIVATEKEY
-        PUBLICKEY: PUBLICKEY
-        AWS_BUCKET: AWS_BUCKET
+        POSTGRES_HOST: '{{resolve:ssm:pg_host:1}}'  
+        POSTGRES_PORT: '{{resolve:ssm:pg_port:1}}'  
+        POSTGRES_USER: '{{resolve:ssm:pg_user:1}}' 
+        POSTGRES_PASSWORD: '{{resolve:ssm:pg_password:1}}'   
+        POSTGRES_DBNAME: '{{resolve:ssm:pg_dbname:1}}'   
+        SSLMODE: '{{resolve:ssm:pg_sslmode:1}}'   
+        PRIVATEKEY: '{{resolve:ssm:privatekey:1}}' 
+        PUBLICKEY: '{{resolve:ssm:publickey:1}}' 
+        AWS_BUCKET: '{{resolve:ssm:s3_bucket:1}}'  
+        AWS_ACCESSKEYID: '{{resolve:ssm:access_key_id:1}}'  
+        AWS_SECRETACCESSKEY: '{{resolve:ssm:secret_access_key:1}}' 
 
 Resources:
   AudioConverterFunction:
@@ -60,16 +62,3 @@ Resources:
             Path: /download_audio/{id}
             Method: GET  
 
-# Outputs:
-
-#   AudioConverterAPI:
-#     Description: "API Gateway endpoint URL for Prod environment for Audio Converter Function"
-#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/converter/"
-#   AudioConverterFunction:
-#     Description: "First Lambda Function ARN"
-#     Value: !GetAtt AudioConverterFunction.Arn
-#   AudioConverterFunctionIamRole:
-#     Description: "Implicit IAM Role created for AudioConverter function"
-#     Value: !GetAtt AudioConverterFunctionRole.Arn
-
-    

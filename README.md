@@ -12,24 +12,24 @@ To set the configuration parameters for the application, set the following envir
 
 [1]  
 ```bash
-AUDIO-CONVERTER_HOST=your_host # default is localhost
-AUDIO-CONVERTER_PORT=your_port # default is 5432 
-AUDIO-CONVERTER_USERNAME=your_username  
-AUDIO-CONVERTER_PASSWORD=your_password  
-AUDIO-CONVERTER_DBNAME=audioconverter  
-AUDIO-CONVERTER_SSLMODE=disable  
+POSTGRES_HOST=your_host # default is localhost
+POSTGRES_PORT=your_port # default is 5432 
+POSTGRES_USER=your_username  
+POSTGRES_PASSWORD=your_password  
+POSTGRES_DBNAME=audioconverter  
+SSLMODE=disable  
 ```
 [2]  
 ```bash
-AUDIO-CONVERTER_PRIVATEKEY="`cat your_private_key_path`"
-AUDIO-CONVERTER_PUBLICKEY="`cat your_public_key_path`" 
+PRIVATEKEY="`cat your_private_key_path`"
+PUBLICKEY="`cat your_public_key_path`" 
 ```
 [3]  
 ```bash
-AUDIO-CONVERTER_ACCESSKEYID=your_access_key_id  
-AUDIO-CONVERTER_SECRETACCESSKEY=your_secret_access_key  
-AUDIO-CONVERTER_REGION=your_region  
-AUDIO-CONVERTER_BUCKET=your_bucket_name  
+AWS_ACCESSKEYID=your_access_key_id  
+AWS_SECRETACCESSKEY=your_secret_access_key  
+AWS_REGION=your_region  
+AWS_BUCKET=your_bucket_name  
 ```
 
 ## DataBase

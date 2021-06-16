@@ -2,9 +2,10 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "mylambda"
+stack_name = "first"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ws48mo7s36yw"
-s3_prefix = "mylambda"
+s3_prefix = "first"
 region = "us-east-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
+parameter_overrides = "User=\"pg_user\" Host=\"pg_host\" Port=\"pg_port\""
