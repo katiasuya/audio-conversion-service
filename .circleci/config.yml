@@ -14,12 +14,13 @@ jobs:
       - image: postgres:13-alpine
         environment:
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          POSTGRES_HOST: $POSTGRES_HOST
 
     parallelism: 2
 
     environment: 
       TEST_RESULTS: /tmp/test-results
-      HOST: localhost
+      HOST: $POSTGRES_HOST
       PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_DB: audioconverter
@@ -41,7 +42,7 @@ jobs:
           name: Waiting for Postgres to be ready
           command: >-
             dockerize -wait
-            tcp://localhost:5432
+            tcp://$POSTGRES_HOST:5432
             -timeout 1m     
       - save_cache:
           key: v1-pkg-cache
@@ -53,20 +54,20 @@ jobs:
       - run:
           name: Create database schema
           command: >-
-            psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 
+            psql postgres://postgres:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432 
             --variable=user_var=TestUser 
             --variable=password_var=TestPassword 
             -f ./scripts/schema.sql
-      - run:
-          name: Start service
-          command: go run cmd/main.go
-          background: true 
-      - run:
-          name: Wait for port to be listened
-          command: >-
-            dockerize -wait
-            tcp://localhost:8000
-            -timeout 1m
+      # - run:
+      #     name: Start service
+      #     command: go run cmd/main.go
+      #     background: true 
+      # - run:
+      #     name: Wait for port to be listened
+      #     command: >-
+      #       dockerize -wait
+      #       tcp://localhost:8000
+      #       -timeout 1m
       - run:
           name: Validate service is working by auth
           command: >-
@@ -107,7 +108,7 @@ jobs:
       - aws-cli/setup
       - run: 
           name: Deploy to lambda
-          command: aws lambda update-function-code --function-name converter-ShowDocsFunction-yScPRBqZhJTL --zip-file fileb://function.zip
+          command: aws lambda update-function-code --function-name first-AudioConverterFunction-Rcyd9HmOgfKu --zip-file fileb://function.zip
 
 workflows:
   version: 2.1
