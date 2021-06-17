@@ -32,6 +32,9 @@ func GetFromContext(ctx context.Context) *log.Entry {
 	if ctxUserID, ok := appcontext.GetUserID(ctx); ok {
 		ctxLogger = ctxLogger.WithField("userID", ctxUserID)
 	}
+	if ctxRequestID, ok := appcontext.GetRequestID(ctx); ok {
+		ctxLogger = ctxLogger.WithField("requestID", ctxRequestID)
+	}
 
 	return ctxLogger
 }

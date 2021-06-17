@@ -66,8 +66,8 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 	})
 }
 
-// AddLoggerWithRequestID creates logger with request id and adds it to context.
-func (s *Server) AddLoggerWithRequestID(next http.Handler) http.Handler {
+// AssignRequestID assigns id to each request and adds it to context.
+func (s *Server) AssignRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rqID, err := uuid.NewRandom()
 		if err != nil {
@@ -77,14 +77,22 @@ func (s *Server) AddLoggerWithRequestID(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := logger.AddToContext(r.Context(), logger.Init().WithField("rqID", rqID.String()))
+		ctx := appcontext.AddRequestID(r.Context(), rqID.String())
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// AddLogger creates logger and adds it to context.
+func (s *Server) AddLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := logger.AddToContext(r.Context(), logger.Init())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	r.Use(s.AddLoggerWithRequestID)
+	r.Use(s.AssignRequestID, s.AddLogger)
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
