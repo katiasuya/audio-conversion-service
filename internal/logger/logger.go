@@ -5,7 +5,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/katiasuya/audio-conversion-service/internal/appcontext"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,13 +25,6 @@ func GetFromContext(ctx context.Context) *log.Entry {
 	ctxLogger, ok := ctx.Value(loggerKey).(*log.Entry)
 	if !ok {
 		ctxLogger = Init()
-	}
-
-	if ctxUserID, ok := appcontext.GetUserID(ctx); ok {
-		ctxLogger = ctxLogger.WithField("userID", ctxUserID)
-	}
-	if ctxRequestID, ok := appcontext.GetRequestID(ctx); ok {
-		ctxLogger = ctxLogger.WithField("requestID", ctxRequestID)
 	}
 
 	return ctxLogger

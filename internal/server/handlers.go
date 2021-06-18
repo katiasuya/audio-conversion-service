@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/appcontext"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
@@ -65,21 +64,7 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 	})
 }
 
-// AssignRequestID assigns id to each request and adds it to context.
-func (s *Server) AssignRequestID(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rqID, err := uuid.NewRandom()
-		if err != nil {
-			logAndRespondErr(r.Context(), w, "can't generate request id", err, http.StatusInternalServerError)
-			return
-		}
-
-		ctx := appcontext.AddRequestID(r.Context(), rqID.String())
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-// AddLogger creates logger and adds it to context.
+// AddLogger creates logger and adds it to the context.
 func (s *Server) AddLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := logger.AddToContext(r.Context(), logger.Init())
@@ -89,7 +74,7 @@ func (s *Server) AddLogger(next http.Handler) http.Handler {
 
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	r.Use(s.AssignRequestID, s.AddLogger)
+	r.Use(s.AddLogger)
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
