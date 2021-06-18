@@ -2,19 +2,8 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   sam
-  
-  Sample SAM Template for sam
 
-# Parameters:
-#   User:
-#     Type: AWS::SSM::Parameter::Value<String>
-#     Default: '{{resolve:ssm:pg_user:1}}'   
-#   Host:
-#     Type: AWS::SSM::Parameter::Value<String>
-#     Default: '{{resolve:ssm:pg_host:1}}'   
-#   Port:
-#     Type: AWS::SSM::Parameter::Value<String>
-#     Default: '{{resolve:ssm:pg_port:1}}'   
+  Sample SAM Template for sam
 
 Globals:
   Function:
@@ -22,54 +11,53 @@ Globals:
     Runtime: go1.x
     Environment:
       Variables:
-        POSTGRES_HOST: '{{resolve:ssm:pg_host:1}}'  
-        POSTGRES_PORT: '{{resolve:ssm:pg_port:1}}'  
-        POSTGRES_USER: '{{resolve:ssm:pg_user:1}}' 
-        POSTGRES_PASSWORD: '{{resolve:ssm:pg_password:1}}'   
-        POSTGRES_DBNAME: '{{resolve:ssm:pg_dbname:1}}'   
-        SSLMODE: '{{resolve:ssm:pg_sslmode:1}}'   
-        PRIVATEKEY: '{{resolve:ssm:privatekey:1}}' 
-        PUBLICKEY: '{{resolve:ssm:publickey:1}}' 
-        AWS_BUCKET: '{{resolve:ssm:s3_bucket:1}}'  
-        # AWS_ACCESSKEYID: '{{resolve:ssm:access_key_id:1}}'  
-        # AWS_SECRETACCESSKEY: '{{resolve:ssm:secret_access_key:1}}' 
+        POSTGRES_HOST: '{{resolve:ssm:pg_host:1}}'
+        POSTGRES_PORT: '{{resolve:ssm:pg_port:1}}'
+        POSTGRES_USER: '{{resolve:ssm:pg_user:1}}'
+        POSTGRES_PASSWORD: '{{resolve:ssm:pg_password:1}}'
+        POSTGRES_DBNAME: '{{resolve:ssm:pg_dbname:1}}'
+        SSLMODE: '{{resolve:ssm:pg_sslmode:1}}'
+        PRIVATEKEY: '{{resolve:ssm:privatekey:1}}'
+        PUBLICKEY: '{{resolve:ssm:publickey:1}}'
+        AWS_BUCKET: '{{resolve:ssm:s3_bucket:1}}'
+        AWS_ACCESSKEYID: '{{resolve:ssm:access_key_id:1}}'
+        AWS_SECRETACCESSKEY: '{{resolve:ssm:secret_access_key:1}}'
 
 Resources:
   AudioConverterFunction:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: cmd/
       Handler: cmd
       Tracing: Active
       Events:
         SignUp:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /signup
             Method: POST
-        LogIn: 
-          Type: Api 
+        LogIn:
+          Type: Api
           Properties:
             Path: /login
             Method: POST
-        Docs: 
-          Type: Api 
+        Docs:
+          Type: Api
           Properties:
             Path: /docs
-            Method: GET    
-        Conversion: 
-          Type: Api 
+            Method: GET
+        Conversion:
+          Type: Api
           Properties:
             Path: /conversion
-            Method: POST    
-        History: 
-          Type: Api 
+            Method: POST
+        History:
+          Type: Api
           Properties:
             Path: /request_history
-            Method: GET  
-        Download: 
-          Type: Api 
+            Method: GET
+        Download:
+          Type: Api
           Properties:
             Path: /download_audio/{id}
-            Method: GET  
-
+            Method: GET

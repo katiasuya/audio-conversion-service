@@ -2,9 +2,9 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "first"
+stack_name = "a1"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ws48mo7s36yw"
-s3_prefix = "first"
+s3_prefix = "a1"
 region = "us-east-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"

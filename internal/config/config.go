@@ -31,8 +31,8 @@ func (c *Config) Load() {
 	c.SSLMode = os.Getenv("SSLMODE")
 	c.PrivateKey = os.Getenv("PRIVATEKEY")
 	c.PublicKey = os.Getenv("PUBLICKEY")
-	c.AccessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
-	c.SecretAccessKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+	c.AccessKeyID = os.Getenv("AWS_ACCESSKEYID")
+	c.SecretAccessKey = os.Getenv("AWS_SECRETACCESSKEY")
 	c.Region = os.Getenv("AWS_REGION")
 	c.Bucket = os.Getenv("AWS_BUCKET")
 }
