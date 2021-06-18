@@ -50,7 +50,6 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 		logger.Error(ctx, fmt.Errorf("can't update request, %v", err))
 		return
 	}
-	logger.Debug(ctx, "status changed to processing")
 
 	targetFileID, err := uuid.NewRandom()
 	if err != nil {
@@ -73,7 +72,6 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 		logger.Error(ctx, fmt.Errorf("can't perform conversion"))
 		return
 	}
-	logger.Debug(ctx, "convertion performed successfully")
 
 	targetFile, err := os.Open(targetLocation)
 	if err != nil {
@@ -92,7 +90,6 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 		logger.Error(ctx, fmt.Errorf("can't upload file to s3, %v", err))
 		return
 	}
-	logger.Debug(ctx, "converted file uploaded to s3 successfully")
 
 	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {
@@ -110,8 +107,6 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 		logger.Error(ctx, fmt.Errorf("can't update request, %v", err))
 		return
 	}
-	logger.Debug(ctx, "status changed to done")
 
-	logger.Info(ctx, fmt.Sprintf("the file with ID=%s was converted successfully", targetID))
 	c.sem.Release(1)
 }

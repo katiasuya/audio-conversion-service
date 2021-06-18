@@ -16,7 +16,6 @@ const loggerKey key = 0
 func Init() *log.Entry {
 	logger := log.New()
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(log.DebugLevel)
 	logger.SetFormatter(&log.JSONFormatter{})
 
 	return &log.Entry{Logger: logger}
@@ -47,11 +46,6 @@ func AddToContext(ctx context.Context, logger *log.Entry) context.Context {
 // Info logs message at Info level.
 func Info(ctx context.Context, msg string) {
 	GetFromContext(ctx).Infoln(msg)
-}
-
-// Debug logs message at Debug level.
-func Debug(ctx context.Context, msg string) {
-	GetFromContext(ctx).Debugln(msg)
 }
 
 // Error logs errors at Error level.
