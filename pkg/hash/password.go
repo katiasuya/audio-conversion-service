@@ -5,8 +5,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// HashPassword hashes user's password.
-func HashPassword(pwd string) (string, error) {
+// PasswordHash hashes user's password.
+func PasswordHash(pwd string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
 	return string(hash), err
 }
