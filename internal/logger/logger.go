@@ -12,26 +12,22 @@ type key int
 
 const loggerKey key = 0
 
-func Init() *log.Entry {
-	logger := log.New()
-	logger.SetOutput(os.Stdout)
-	logger.SetFormatter(&log.JSONFormatter{})
-
-	return &log.Entry{Logger: logger}
+var DefaultLogger = &log.Logger{
+	Out:       os.Stdout,
+	Formatter: new(log.JSONFormatter),
+	Level:     log.InfoLevel,
 }
 
 // GetFromContext returns logger with all possible context.
-func GetFromContext(ctx context.Context) *log.Entry {
-	ctxLogger, ok := ctx.Value(loggerKey).(*log.Entry)
-	if !ok {
-		ctxLogger = Init()
+func GetFromContext(ctx context.Context) *log.Logger {
+	if ctxLogger, ok := ctx.Value(loggerKey).(*log.Logger); ok {
+		return ctxLogger
 	}
-
-	return ctxLogger
+	return DefaultLogger
 }
 
 // AddToContext adds logger to the context.
-func AddToContext(ctx context.Context, logger *log.Entry) context.Context {
+func AddToContext(ctx context.Context, logger *log.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey, logger)
 }
 
