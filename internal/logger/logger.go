@@ -26,11 +26,6 @@ func GetFromContext(ctx context.Context) *log.Logger {
 	return DefaultLogger
 }
 
-// AddToContext adds logger to the context.
-func AddToContext(ctx context.Context, logger *log.Logger) context.Context {
-	return context.WithValue(ctx, loggerKey, logger)
-}
-
 // Info logs message at Info level.
 func Info(ctx context.Context, msg string) {
 	GetFromContext(ctx).Infoln(msg)

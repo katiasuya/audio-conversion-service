@@ -64,17 +64,8 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 	})
 }
 
-// AddLogger creates logger and adds it to the context.
-func (s *Server) AddLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := logger.AddToContext(r.Context(), logger.DefaultLogger)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 // RegisterRoutes registers application rotes.
 func (s *Server) RegisterRoutes(r *mux.Router) {
-	r.Use(s.AddLogger)
 	api := r.NewRoute().Subrouter()
 	api.Use(s.IsAuthorized)
 
@@ -109,7 +100,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
-		logAndRespondErr(r.Context(), w, "invalid user credentials", err, http.StatusBadRequest)
+		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid user credentials: %w", err))
 		return
 	}
 
