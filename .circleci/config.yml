@@ -95,13 +95,13 @@ jobs:
       - run: 
           name: Build service
           command: go build cmd/main.go
-      - run: 
-          name: Zip binary
-          command: zip function.zip main
-      - save_cache:
-          key:  checksum "function.zip" 
-          paths:
-            - function.zip
+      # - run: 
+      #     name: Zip binary
+      #     command: zip function.zip main
+      # - save_cache:
+      #     key:  checksum "function.zip" 
+      #     paths:
+      #       - function.zip
 
   # deploy:
   #   executor: aws-cli/default
@@ -123,6 +123,8 @@ jobs:
         app-name: serverless-framework-orb
         org-name: circleci
       - run: 
+          name: B
+          command: serverless deploy -v
           name: Deploy to lambda
           command: serverless deploy -v
 
