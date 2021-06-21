@@ -2,21 +2,6 @@ SELECT 'CREATE DATABASE audioconverter'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'audioconverter');
 \gexec
 
-CREATE FUNCTION pg_temp.create_user(_user text, _password text)
-RETURNS VOID  
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname=_user) THEN
-        EXECUTE format('CREATE USER %I WITH ENCRYPTED PASSWORD %L', _user,  _password);
-        EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE audioconverter TO %I', _user);
-    END IF;
-END;
-$$;
-
-SELECT pg_temp.create_user(:'user_var',:'password_var');
-
 \c audioconverter
 
 CREATE SCHEMA IF NOT EXISTS converter;
@@ -34,8 +19,6 @@ BEGIN
         CREATE TYPE status AS ENUM ('queued', 'processing','done', 'failed');
     END IF;
 END$$;
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA converter;
 
 CREATE TABLE IF NOT EXISTS converter."user"(
 id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

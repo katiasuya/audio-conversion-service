@@ -12,8 +12,6 @@ paths:
       summary: Get documentation
       security:
         - bearerAuth: []
-      tags: 
-       - Documentation
       responses:
         '200':    
           description: OK
@@ -24,8 +22,6 @@ paths:
   /user/signup:
     post:
       summary: Create a user
-      tags: 
-       - Users
       requestBody:
           $ref: '#/components/requestBodies/User'
       responses:
@@ -50,8 +46,6 @@ paths:
   /user/login:
     post:
       summary: Authenticate a user
-      tags: 
-       - Users
       requestBody:
           $ref: '#/components/requestBodies/User'
       responses:
@@ -78,8 +72,6 @@ paths:
       summary: Make a request for audio conversion
       security:
         - bearerAuth: []
-      tags: 
-        - Requests
       requestBody:
           $ref: '#/components/requestBodies/ConversionRequest'
       responses:
@@ -106,8 +98,6 @@ paths:
       summary: Get request history of a user
       security:
         - bearerAuth: []
-      tags: 
-      - Requests
       responses:
         '200':
           description: Successfully got user's request history
@@ -126,8 +116,6 @@ paths:
       summary: Download the audio by id
       security:
         - bearerAuth: []
-      tags:
-        - Audios 
       parameters:
         - in: path
           name: id
@@ -156,30 +144,6 @@ paths:
 
 components:   
   schemas:  
-    ConversionRequest:
-      type: object
-      properties:
-        request_id:
-          type: string
-          format: uuid
-        source_id:
-          type: string
-          format: uuid
-        source_format:
-          $ref: '#/components/schemas/Format'
-        target_id:
-          type: string
-          format: uuid  
-        target_format:
-          $ref: '#/components/schemas/Format'
-        created:
-          type: string
-          format: date-time
-        updated:
-          type: string
-          format: date-time
-        status:
-          $ref: '#/components/schemas/Status'
     HistoryResponse:
       type: object
       properties:
@@ -205,8 +169,8 @@ components:
           audio_name: 'Euphoria.wav'
           source_format: wav
           target_format: mp3
-          created: 2020-02-20 T 11:32:28 Z
-          updated: 2020-02-20 T 13:27:03 Z 
+          created: '2020-02-20T11:32:28Z'
+          updated: '2020-02-20T13:27:03Z' 
           status: done
     Format: 
         type: string
