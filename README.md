@@ -12,11 +12,11 @@ To set the configuration parameters for the application, set the following envir
 
 [1]  
 ```bash
-HOST=your_host # default is localhost
-PORT=your_port # default is 5432 
+POSTGRES_HOST=your_host # default is localhost
+POSTGRES_PORT=your_port # default is 5432 
 POSTGRES_USER=your_username  
 POSTGRES_PASSWORD=your_password  
-POSTGRES_DB=audioconverter  
+POSTGRES_DBNAME=audioconverter  
 SSLMODE=disable  
 ```
 [2]  
@@ -26,8 +26,8 @@ PUBLICKEY="`cat your_public_key_path`"
 ```
 [3]  
 ```bash
-AWS_ACCESS_KEY_ID=your_access_key_id  
-AWS_SECRET_ACCESS_KEY=your_secret_access_key  
+AWS_ACCESSKEYID=your_access_key_id  
+AWS_SECRETACCESSKEY=your_secret_access_key  
 AWS_REGION=your_region  
 AWS_BUCKET=your_bucket_name  
 ```

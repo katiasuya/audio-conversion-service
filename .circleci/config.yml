@@ -2,6 +2,7 @@
 version: 2.1
 
 orbs:
+  serverless: circleci/serverless-framework@1.0.1
   aws-cli: circleci/aws-cli@2.0
 
 jobs:
@@ -14,12 +15,13 @@ jobs:
       - image: postgres:13-alpine
         environment:
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          POSTGRES_HOST: $POSTGRES_HOST
 
     parallelism: 2
 
     environment: 
       TEST_RESULTS: /tmp/test-results
-      HOST: localhost
+      HOST: $POSTGRES_HOST
       PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_DB: audioconverter
@@ -41,7 +43,7 @@ jobs:
           name: Waiting for Postgres to be ready
           command: >-
             dockerize -wait
-            tcp://localhost:5432
+            tcp://$POSTGRES_HOST:5432
             -timeout 1m     
       - save_cache:
           key: v1-pkg-cache
@@ -53,27 +55,26 @@ jobs:
       - run:
           name: Create database schema
           command: >-
-            psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 
+            psql postgres://postgres:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432 
             --variable=user_var=TestUser 
             --variable=password_var=TestPassword 
             -f ./scripts/schema.sql
-      - run:
-          name: Start service
-          command: go run cmd/main.go
-          background: true 
-      - run:
-          name: Wait for port to be listened
-          command: >-
-            dockerize -wait
-            tcp://localhost:8000
-            -timeout 1m
+      # - run:
+      #     name: Start service
+      #     command: go run cmd/main.go
+      #     background: true 
+      # - run:
+      #     name: Wait for port to be listened
+      #     command: >-
+      #       dockerize -wait
+      #       tcp://localhost:8000
+      #       -timeout 1m
       - run:
           name: Validate service is working by auth
-          command: >-
-            curl --retry 10 --retry-delay 1 -X POST
-            --header "Content-Type: application/json"
-            -d '{"username":"TestUser", "password":"qwerty123"}'
-            http://localhost:8000/user/signup    
+          command: >- 
+            curl -X POST --header "Content-Type: application/json" 
+            -d '{"username":"TestUser", "password":"qwerty1234"}'
+            https://ymlhefjz91.execute-api.us-east-2.amazonaws.com/Prod/signup
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
@@ -94,23 +95,37 @@ jobs:
       - run: 
           name: Build service
           command: go build cmd/main.go
-      - run: 
-          name: Zip binary
-          command: zip function.zip main
-      - save_cache:
-          key:  checksum "function.zip" 
-          paths:
-            - function.zip
+      # - run: 
+      #     name: Zip binary
+      #     command: zip function.zip main
+      # - save_cache:
+      #     key:  checksum "function.zip" 
+      #     paths:
+      #       - function.zip
 
-  deploy:
-    executor: aws-cli/default
+  # deploy:
+  #   executor: aws-cli/default
+  #   steps:
+  #     - restore_cache:
+  #         key:  checksum "function.zip" 
+  #     - aws-cli/setup
+  #     - run: 
+  #         name: Deploy to lambda
+  #         command: aws lambda update-function-code --function-name first-AudioConverterFunction-Rcyd9HmOgfKu --zip-file fileb://function.zip
+
+    deploy:
+    executor: serverless/default
     steps:
-      - restore_cache:
-          key:  checksum "function.zip" 
-      - aws-cli/setup
+      - checkout
+      - serverless/setup:
+          provider: AWS
+          app-name: serverless-framework-orb
+          org-name: circleci
       - run: 
+          name: Build
+          command: serverless deploy -v
           name: Deploy to lambda
-          command: aws lambda update-function-code --function-name audio-converter --zip-file fileb://function.zip
+          command: serverless deploy -v
 
 workflows:
   version: 2.1
