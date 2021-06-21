@@ -109,7 +109,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
-		logAndRespondErr(r.Context(), w, "invalid user credentials", err, http.StatusBadRequest)
+		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid user credentials: %w", err))
 		return
 	}
 
