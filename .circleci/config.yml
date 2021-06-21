@@ -119,11 +119,11 @@ jobs:
       - checkout
       - aws-cli/setup
       - serverless/setup:
-        provider: AWS
-        app-name: serverless-framework-orb
-        org-name: circleci
+          provider: AWS
+          app-name: serverless-framework-orb
+          org-name: circleci
       - run: 
-          name: B
+          name: Build
           command: serverless deploy -v
           name: Deploy to lambda
           command: serverless deploy -v
