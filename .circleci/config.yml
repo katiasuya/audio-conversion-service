@@ -2,6 +2,7 @@
 version: 2.1
 
 orbs:
+  serverless: circleci/serverless-framework@1.0.1
   aws-cli: circleci/aws-cli@2.0
 
 jobs:
@@ -73,7 +74,7 @@ jobs:
           command: >- 
             curl -X POST --header "Content-Type: application/json" 
             -d '{"username":"TestUser", "password":"qwerty1234"}'
-            https://to3npfe976.execute-api.us-east-2.amazonaws.com/Prod/signup
+            https://ymlhefjz91.execute-api.us-east-2.amazonaws.com/Prod/signup
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
@@ -102,15 +103,28 @@ jobs:
           paths:
             - function.zip
 
-  deploy:
-    executor: aws-cli/default
+  # deploy:
+  #   executor: aws-cli/default
+  #   steps:
+  #     - restore_cache:
+  #         key:  checksum "function.zip" 
+  #     - aws-cli/setup
+  #     - run: 
+  #         name: Deploy to lambda
+  #         command: aws lambda update-function-code --function-name first-AudioConverterFunction-Rcyd9HmOgfKu --zip-file fileb://function.zip
+
+    deploy:
+    executor: serverless/default
     steps:
-      - restore_cache:
-          key:  checksum "function.zip" 
+      - checkout
       - aws-cli/setup
+      - serverless/setup:
+        provider: AWS
+        app-name: serverless-framework-orb
+        org-name: circleci
       - run: 
           name: Deploy to lambda
-          command: aws lambda update-function-code --function-name first-AudioConverterFunction-Rcyd9HmOgfKu --zip-file fileb://function.zip
+          command: serverless deploy -v
 
 workflows:
   version: 2.1
