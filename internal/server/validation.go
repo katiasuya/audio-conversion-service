@@ -22,7 +22,7 @@ var (
 )
 
 // ValidateUserCredentials validates user's credentials.
-func UserCredentials(username, password string) error {
+func ValidateUserCredentials(username, password string) error {
 	if username == "" {
 		return errMissingUsername
 	}
@@ -48,7 +48,7 @@ func UserCredentials(username, password string) error {
 }
 
 // ValidateRequest validates conversion request body.
-func Request(name, sourceFormat, targetFormat, sourceContentType string) error {
+func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string) error {
 	if sourceFormat == "" {
 		return errors.New("source format is missing")
 	}
