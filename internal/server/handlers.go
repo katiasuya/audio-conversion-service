@@ -20,11 +20,6 @@ import (
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
 )
 
-var (
-	errInvalidUsernameOrPassword = errors.New("invalid username or password")
-	errCantGetUserIDFomContext   = errors.New("can't get user id from context")
-)
-
 // Server represents application server.
 type Server struct {
 	repo      *repository.Repository
@@ -164,7 +159,7 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
-		res.RespondErr(w, http.StatusUnauthorized, errInvalidUsernameOrPassword)
+		res.RespondErr(w, http.StatusUnauthorized, errors.New("invalid username or password"))
 		return
 	}
 
@@ -208,7 +203,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := appcontext.GetUserID(r.Context())
 	if !ok {
-		logAndRespondErr(r.Context(), w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
+		logAndRespondErr(r.Context(), w, "", errors.New("can't get user id from context"), http.StatusInternalServerError)
 		return
 	}
 
@@ -234,7 +229,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 func (s *Server) RequestHistory(w http.ResponseWriter, r *http.Request) {
 	userID, ok := appcontext.GetUserID(r.Context())
 	if !ok {
-		logAndRespondErr(r.Context(), w, "", errCantGetUserIDFomContext, http.StatusInternalServerError)
+		logAndRespondErr(r.Context(), w, "", errors.New("can't get user id from context"), http.StatusInternalServerError)
 		return
 	}
 
