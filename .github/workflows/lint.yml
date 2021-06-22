@@ -35,7 +35,6 @@ jobs:
         with:
           fetch-depth: 0
 
-
       ################################
       # Run Linter against code base #
       ################################
