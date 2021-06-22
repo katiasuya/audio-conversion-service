@@ -12,10 +12,14 @@ type key int
 
 const loggerKey key = 0
 
-var DefaultLogger = &log.Logger{
+var defaultLogger = &log.Logger{
 	Out:       os.Stdout,
 	Formatter: new(log.JSONFormatter),
 	Level:     log.InfoLevel,
+}
+
+func New() *log.Logger {
+	return defaultLogger
 }
 
 // GetFromContext returns logger with all possible context.
@@ -23,7 +27,7 @@ func GetFromContext(ctx context.Context) *log.Logger {
 	if ctxLogger, ok := ctx.Value(loggerKey).(*log.Logger); ok {
 		return ctxLogger
 	}
-	return DefaultLogger
+	return defaultLogger
 }
 
 // AddToContext adds logger to the context.

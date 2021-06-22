@@ -62,7 +62,7 @@ func (s *Server) IsAuthorized(next http.Handler) http.Handler {
 // AddLogger creates logger and adds it to the context.
 func (s *Server) AddLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := logger.AddToContext(r.Context(), logger.DefaultLogger)
+		ctx := logger.AddToContext(r.Context(), logger.New())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
