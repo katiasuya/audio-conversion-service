@@ -103,7 +103,7 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
+	if err := UserCredentials(req.Username, req.Password); err != nil {
 		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid user credentials: %w", err))
 		return
 	}
@@ -190,7 +190,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	if err = Request(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
 		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid request: %w", err))
 		return
 	}
