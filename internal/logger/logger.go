@@ -18,6 +18,7 @@ var defaultLogger = &log.Logger{
 	Level:     log.InfoLevel,
 }
 
+// New returns the default logger.
 func New() *log.Logger {
 	return defaultLogger
 }
