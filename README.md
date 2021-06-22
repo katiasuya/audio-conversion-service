@@ -14,8 +14,8 @@ To set the configuration parameters for the application, set the following envir
 ```bash
 HOST=your_host # default is localhost
 PORT=your_port # default is 5432 
-POSTGRES_USER=your_username  
-POSTGRES_PASSWORD=your_password  
+POSTGRES_USER=your_postgres_user 
+POSTGRES_PASSWORD=your_postgres_password  
 POSTGRES_DB=audioconverter  
 SSLMODE=disable  
 ```

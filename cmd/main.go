@@ -1,11 +1,12 @@
 package main
 
 import (
-	"log"
+	"context"
 
 	"github.com/katiasuya/audio-conversion-service/internal/app"
+	"github.com/katiasuya/audio-conversion-service/internal/logger"
 )
 
 func main() {
-	log.Fatal(app.Run())
+	logger.Fatal(context.Background(), app.Run())
 }

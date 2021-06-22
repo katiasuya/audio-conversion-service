@@ -23,16 +23,16 @@ type Config struct {
 
 // Load loads configuration parameters to Config from environment variables.
 func (c *Config) Load() {
-	c.Host = os.Getenv("HOST")
-	c.Port = os.Getenv("PORT")
+	c.Host = os.Getenv("POSTGRES_HOST")
+	c.Port = os.Getenv("POSTGRES_PORT")
 	c.Username = os.Getenv("POSTGRES_USER")
 	c.Password = os.Getenv("POSTGRES_PASSWORD")
-	c.DBName = os.Getenv("POSTGRES_DB")
+	c.DBName = os.Getenv("POSTGRES_DBNAME")
 	c.SSLMode = os.Getenv("SSLMODE")
 	c.PrivateKey = os.Getenv("PRIVATEKEY")
 	c.PublicKey = os.Getenv("PUBLICKEY")
-	c.AccessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
-	c.SecretAccessKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+	c.AccessKeyID = os.Getenv("AWS_ACCESSKEYID")
+	c.SecretAccessKey = os.Getenv("AWS_SECRETACCESSKEY")
 	c.Region = os.Getenv("AWS_REGION")
 	c.Bucket = os.Getenv("AWS_BUCKET")
 }

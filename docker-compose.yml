@@ -1,25 +1,21 @@
 version: '3.1'
 
 services:
-
     postgresql:
-        build:
-            context: ./
-            dockerfile: Dockerfile.db
+        image: postgres:13-alpine 
         container_name: postgresql
         env_file: .env
         restart: always
         hostname: "postgres.local"
         ports:
-            - "5432:5432"
+            - "5432:5432" 
         volumes:
             - postgresql:/var/lib/postgresql/data 
-
+            - ./scripts/docker-schema.sql:/docker-entrypoint-initdb.d/0_init.sql
     audio-converter:
         build:
             context: ./
-            dockerfile: Dockerfile.service
-        container_name: "audio-converter"
+        container_name: audio-converter
         env_file: .env
         restart: always
         hostname: "converter.local"

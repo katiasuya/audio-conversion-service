@@ -62,7 +62,7 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 		return errors.New("source and target formats can't be equal")
 	}
 	if _, ok := formats[targetFormat]; !ok {
-		return errors.New("invalid target format: need mp3 or wav")
+		return errors.New("invalid target format, need mp3 or wav")
 	}
 
 	if containsInvalidChars(name) {
