@@ -3,7 +3,6 @@ package converter
 
 import (
 	"context"
-
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,22 +11,19 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
-	"golang.org/x/sync/semaphore"
 )
 
 var status = []string{"processing", "done", "failed"}
 
 // Converter converts audio files to other formats.
 type Converter struct {
-	sem     *semaphore.Weighted
 	repo    *repository.Repository
 	storage *storage.Storage
 }
 
 // New creates a new Converter with given fields.
-func New(sem *semaphore.Weighted, repo *repository.Repository, storage *storage.Storage) *Converter {
+func New(repo *repository.Repository, storage *storage.Storage) *Converter {
 	return &Converter{
-		sem:     sem,
 		repo:    repo,
 		storage: storage,
 	}
@@ -35,13 +31,13 @@ func New(sem *semaphore.Weighted, repo *repository.Repository, storage *storage.
 
 // Convert implements audio conversion.
 func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat, targetFormat, requestID string) {
-	if err := c.sem.Acquire(context.Background(), 1); err != nil {
-		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
-		}
-		logger.Error(ctx, fmt.Errorf("can't aquire semaphore, %v", err))
-		return
-	}
+	// if err := c.sem.Acquire(context.Background(), 1); err != nil {
+	// 	if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+	// 		logger.Error(ctx, updateErr)
+	// 	}
+	// 	logger.Error(ctx, fmt.Errorf("can't aquire semaphore, %v", err))
+	// 	return
+	// }
 
 	if err := c.repo.UpdateRequest(requestID, status[0], ""); err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
@@ -108,5 +104,5 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 		return
 	}
 
-	c.sem.Release(1)
+	// c.sem.Release(1)
 }

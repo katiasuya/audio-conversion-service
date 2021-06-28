@@ -6,18 +6,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/appcontext"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
+
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 	"github.com/katiasuya/audio-conversion-service/pkg/hash"
+	"github.com/streadway/amqp"
 )
 
 // Server represents application server.
@@ -213,7 +217,8 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.converter.Convert(r.Context(), fileID, filename, sourceFormat, targetFormat, requestID)
+	// go s.converter.Convert(r.Context(), fileID, filename, sourceFormat, targetFormat, requestID)
+	go sendConversionRequest(r.Context(), fileID, filename, sourceFormat, targetFormat, requestID)
 
 	type response struct {
 		ID string `json:"id"`
@@ -277,4 +282,68 @@ func logAndRespondErr(ctx context.Context, w http.ResponseWriter, wrapper string
 	errMsg := fmt.Errorf(wrapper+": %w", err)
 	logger.Error(ctx, errMsg)
 	res.RespondErr(w, code, errMsg)
+}
+
+func sendConversionRequest(ctx context.Context, fileID, filename, sourceFormat, targetFormat, requestID string) error {
+	url := os.Getenv("AMQP_URL")
+	fmt.Println(url)
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return fmt.Errorf("failed to open a channel: %w", err)
+	}
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"conversion_requests",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %w", err)
+	}
+
+	type conversionData struct {
+		FileID       string
+		Filename     string
+		SourceFormat string
+		TargetFormat string
+		RequestID    string
+	}
+	convData := conversionData{
+		FileID:       fileID,
+		Filename:     filename,
+		SourceFormat: sourceFormat,
+		TargetFormat: targetFormat,
+		RequestID:    requestID,
+	}
+
+	body, err := json.Marshal(convData)
+	if err != nil {
+		return fmt.Errorf("can't marshal the given payload: %w", err)
+	}
+
+	err = ch.Publish(
+		"",
+		q.Name,
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         []byte(body),
+		})
+	if err != nil {
+		return fmt.Errorf("failed to publish a message: %w", err)
+	}
+	log.Printf(" [x] Sent %s", body)
+	return nil
 }

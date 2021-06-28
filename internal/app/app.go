@@ -14,12 +14,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
 	"github.com/katiasuya/audio-conversion-service/internal/config"
-	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/server"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
-	"golang.org/x/sync/semaphore"
 )
 
 // Run runs the application service.
@@ -54,13 +52,11 @@ func Run() error {
 	storage := storage.New(svc, conf.Bucket, uploader)
 	logger.Info(ctx, "cloud storage initialized successfully")
 
-	const maxRequests = 10
-	sem := semaphore.NewWeighted(maxRequests)
-	converter := converter.New(sem, repo, storage)
+	// converter := worker.New(repo, storage)
 
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := server.New(repo, storage, converter, tokenMgr)
+	server := server.New(repo, storage, nil, tokenMgr)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
