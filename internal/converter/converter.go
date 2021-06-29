@@ -1,14 +1,11 @@
-// Package converter implements a function for audio converting.
 package converter
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/google/uuid"
-	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 )
@@ -29,31 +26,18 @@ func New(repo *repository.Repository, storage *storage.Storage) *Converter {
 	}
 }
 
-// Convert implements audio conversion.
-func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat, targetFormat, requestID string) {
-	// if err := c.sem.Acquire(context.Background(), 1); err != nil {
-	// 	if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-	// 		logger.Error(ctx, updateErr)
-	// 	}
-	// 	logger.Error(ctx, fmt.Errorf("can't aquire semaphore, %v", err))
-	// 	return
-	// }
-
+// Process implements audio conversion process.
+func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, requestID string) error {
 	if err := c.repo.UpdateRequest(requestID, status[0], ""); err != nil {
-		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
-		}
-		logger.Error(ctx, fmt.Errorf("can't update request, %v", err))
-		return
+		return fmt.Errorf("can't update request: %w", err)
 	}
 
 	targetFileID, err := uuid.NewRandom()
 	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
+			return fmt.Errorf("can't update request: %w", err)
 		}
-		logger.Error(ctx, fmt.Errorf("can't generate target file uuid, %v", err))
-		return
+		return fmt.Errorf("can't generate target file uuid: %w", err)
 	}
 	targetFileIDStr := targetFileID.String()
 
@@ -63,46 +47,38 @@ func (c *Converter) Convert(ctx context.Context, fileID, filename, sourceFormat,
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	if err = cmd.Run(); err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
+			return fmt.Errorf("can't update request: %w", err)
 		}
-		logger.Error(ctx, fmt.Errorf("can't perform conversion"))
-		return
+		return fmt.Errorf("can't perform conversion")
 	}
 
 	targetFile, err := os.Open(targetLocation)
 	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
+			return fmt.Errorf("can't update request: %w", err)
 		}
-		logger.Error(ctx, fmt.Errorf("can't generate targetFileID, %v", err))
-		return
+		return fmt.Errorf("can't generate targetFileID: %w", err)
 	}
 
 	err = c.storage.UploadFileToCloud(targetFile, targetFileIDStr, targetFormat)
 	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
+			return fmt.Errorf("can't update request: %w", err)
 		}
-		logger.Error(ctx, fmt.Errorf("can't upload file to s3, %v", err))
-		return
+		return fmt.Errorf("can't upload file to s3: %w", err)
 	}
 
 	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
 	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
+			return fmt.Errorf("can't update request: %w", err)
 		}
-		logger.Error(ctx, fmt.Errorf("can't insert audio, %v", err))
-		return
+		return fmt.Errorf("can't insert audio: %w", err)
 	}
 
 	if err := c.repo.UpdateRequest(requestID, status[1], targetID); err != nil {
-		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
-			logger.Error(ctx, updateErr)
-		}
-		logger.Error(ctx, fmt.Errorf("can't update request, %v", err))
-		return
+		return fmt.Errorf("can't update request: %w", err)
 	}
 
-	// c.sem.Release(1)
+	return nil
 }
