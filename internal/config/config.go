@@ -19,6 +19,8 @@ type Config struct {
 	SecretAccessKey string `required:"true"`
 	Region          string `required:"true"`
 	Bucket          string `required:"true"`
+	AmpqUri         string `required:"true"`
+	QueueName       string `required:"true"`
 }
 
 // Load loads configuration parameters to Config from environment variables.
@@ -35,4 +37,6 @@ func (c *Config) Load() {
 	c.SecretAccessKey = os.Getenv("AWS_SECRETACCESSKEY")
 	c.Region = os.Getenv("AWS_REGION")
 	c.Bucket = os.Getenv("AWS_BUCKET")
+	c.AmpqUri = os.Getenv("AMQP_URI")
+	c.QueueName = os.Getenv("QUEUE_NAME")
 }
