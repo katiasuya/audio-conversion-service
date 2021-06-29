@@ -52,16 +52,13 @@ func Run() error {
 	storage := storage.New(svc, conf.Bucket, uploader)
 	logger.Info(ctx, "cloud storage initialized successfully")
 
-	// converter := worker.New(repo, storage)
-
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
 
-	server := server.New(repo, storage, nil, tokenMgr)
+	server := server.New(repo, storage, tokenMgr)
 
 	r := mux.NewRouter()
 	server.RegisterRoutes(r)
 
 	logger.Info(ctx, "start listening on :8000")
-
 	return http.ListenAndServe(":8000", r)
 }
