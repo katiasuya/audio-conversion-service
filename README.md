@@ -31,6 +31,11 @@ AWS_SECRET_ACCESS_KEY=your_secret_access_key
 AWS_REGION=your_region  
 AWS_BUCKET=your_bucket_name  
 ```
+[4]  
+```bash
+AMQP_URI=your_ampq_uri
+QUEUE_NAME=your_queue_name 
+```
 
 ## DataBase
 
@@ -67,9 +72,14 @@ environment variables from group [3].
 The service uses `ffmpeg` multimedia framework for audio conversion, so it needs to be installed.  
 Go to `https://www.ffmpeg.org/download.html` and follow the instructions to download it for your OS.
 
+## Queuing
+
+To use request queuing in the application, RabbitMQ is used.  
+For that, set corresponding environment variables from group [4].  
+
 ## Docker
 
 To run your application in docker, create an `.env` file at the root of the directory  
-with the values, decribed in Configuration section (the HOST value must be `postgres.local`).  
+with the values, decribed in Configuration section.  
 
 Lastly, run `docker-compose up`.  
