@@ -59,7 +59,7 @@ jobs:
             -f ./scripts/schema.sql
       - run:
           name: Start service
-          command: go run cmd/main.go
+          command: go run cmd/api/main.go
           background: true 
       - run:
           name: Wait for port to be listened
@@ -73,7 +73,7 @@ jobs:
             curl --retry 10 --retry-delay 1 -X POST
             --header "Content-Type: application/json"
             -d '{"username":"TestUser", "password":"qwerty123"}'
-            http://localhost:8000/user/signup    
+            http://localhost:8000/signup    
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
@@ -93,7 +93,7 @@ jobs:
           command: go mod download
       - run: 
           name: Build service
-          command: go build cmd/main.go
+          command: go build cmd/api/main.go
       - run: 
           name: Zip binary
           command: zip function.zip main
