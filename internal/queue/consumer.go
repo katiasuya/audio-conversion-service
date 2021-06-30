@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
 	"github.com/katiasuya/audio-conversion-service/internal/logger"
@@ -52,7 +51,6 @@ func (qm *QueueManager) ProcessMsgs() error {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
 			var data conversionData
 			if err := json.NewDecoder(bytes.NewReader(d.Body)).Decode(&data); err != nil {
 				logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
@@ -61,12 +59,11 @@ func (qm *QueueManager) ProcessMsgs() error {
 			if err != nil {
 				logger.Error(context.Background(), err)
 			}
-			log.Printf("Done")
+
 			d.Ack(false)
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-consumeMsgs
 
 	return nil

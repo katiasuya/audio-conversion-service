@@ -3,7 +3,6 @@ package queue
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/streadway/amqp"
 )
@@ -39,6 +38,6 @@ func (qm *QueueManager) SendConversionData(fileID, filename, sourceFormat, targe
 	if err != nil {
 		return fmt.Errorf("failed to publish a message: %w", err)
 	}
-	log.Printf(" [x] Sent %s", body)
+
 	return nil
 }
