@@ -29,7 +29,7 @@ func (c *Config) Load() {
 	c.Port = os.Getenv("POSTGRES_PORT")
 	c.Username = os.Getenv("POSTGRES_USER")
 	c.Password = os.Getenv("POSTGRES_PASSWORD")
-	c.DBName = os.Getenv("POSTGRES_DBNAME")
+	c.DBName = os.Getenv("POSTGRES_DB")
 	c.SSLMode = os.Getenv("SSLMODE")
 	c.PrivateKey = os.Getenv("PRIVATEKEY")
 	c.PublicKey = os.Getenv("PUBLICKEY")
