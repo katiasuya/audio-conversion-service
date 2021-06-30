@@ -1,0 +1,10 @@
+FROM golang:1.16-alpine AS build
+WORKDIR /src
+COPY . .
+RUN go mod download && CGO_ENABLED=0 go build -o /bin/app cmd/api/main.go
+
+FROM alpine:3.13
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+COPY --from=build /bin/app /bin/app
+CMD ["sh", "-c", "/wait && /bin/app"]
