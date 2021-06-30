@@ -14,6 +14,10 @@ jobs:
       - image: postgres:13-alpine
         environment:
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      - image: rabbitmq:3-management-alpine
+        environment:
+          AMQP_URI: $AMQP_URI   
+          QUEUE_NAME: $QUEUE_NAME  
 
     parallelism: 2
 
