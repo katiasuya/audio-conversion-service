@@ -53,7 +53,7 @@ func RunAPI() error {
 	storage := storage.New(svc, conf.Bucket, uploader)
 	logger.Info(ctx, "cloud storage initialized successfully")
 
-	conn, ch, err := queue.NewRabbitMQClient(conf.AmpqUri, conf.QueueName)
+	conn, ch, err := queue.NewRabbitMQClient(conf.AmpqURI, conf.QueueName)
 	if err != nil {
 		return err
 	}
