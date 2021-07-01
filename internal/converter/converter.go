@@ -32,6 +32,13 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 		return fmt.Errorf("can't update request: %w", err)
 	}
 
+	if err := c.storage.DownloadFileFromCloud(fileID, sourceFormat); err != nil {
+		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
+			return fmt.Errorf("can't update request: %w", err)
+		}
+		return err
+	}
+
 	targetFileID, err := uuid.NewRandom()
 	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {

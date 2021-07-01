@@ -17,17 +17,19 @@ const LocationTemplate = "/tmp/%s.%s"
 
 // Storage represents aws s3 client.
 type Storage struct {
-	svc      *s3.S3
-	bucket   string
-	uploader *s3manager.Uploader
+	svc        *s3.S3
+	bucket     string
+	uploader   *s3manager.Uploader
+	downloader *s3manager.Downloader
 }
 
 // New creates a new storage with the given client.
-func New(svc *s3.S3, bucket string, uploader *s3manager.Uploader) *Storage {
+func New(svc *s3.S3, bucket string, uploader *s3manager.Uploader, downloader *s3manager.Downloader) *Storage {
 	return &Storage{
-		svc:      svc,
-		bucket:   bucket,
-		uploader: uploader,
+		svc:        svc,
+		bucket:     bucket,
+		uploader:   uploader,
+		downloader: downloader,
 	}
 }
 
@@ -45,7 +47,7 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 
 	file, err := os.Create(fmt.Sprintf(LocationTemplate, fileIDStr, format))
 	if err != nil {
-		return "", fmt.Errorf("can't create file, %w", err)
+		return "", fmt.Errorf("can't create local file, %w", err)
 	}
 	defer file.Close()
 	if _, err := io.Copy(file, sourceFile); err != nil {
@@ -80,4 +82,26 @@ func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
 	}
 
 	return urlStr, err
+}
+
+// DownloadFileFromCloud downloads request file from s3 cloud storage.
+func (s *Storage) DownloadFileFromCloud(fileID, format string) error {
+	filename := fmt.Sprintf(LocationTemplate, fileID, format)
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("can't create local file, %w", err)
+	}
+	defer file.Close()
+
+	_, err = s.downloader.Download(file,
+		&s3.GetObjectInput{
+			Bucket: aws.String(s.bucket),
+			Key:    aws.String(fileID + "." + format),
+		})
+	if err != nil {
+		return fmt.Errorf("can't download file from S3, %w", err)
+	}
+
+	return nil
 }

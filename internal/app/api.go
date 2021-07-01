@@ -48,9 +48,10 @@ func RunAPI() error {
 		return fmt.Errorf("can't create new session: %w", err)
 	}
 
+	downloader := s3manager.NewDownloader(sess)
 	uploader := s3manager.NewUploader(sess)
 	svc := s3.New(sess)
-	storage := storage.New(svc, conf.Bucket, uploader)
+	storage := storage.New(svc, conf.Bucket, uploader, downloader)
 	logger.Info(ctx, "cloud storage initialized successfully")
 
 	conn, ch, err := queue.NewRabbitMQClient(conf.AmpqURI, conf.QueueName)
