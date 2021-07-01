@@ -11,6 +11,7 @@ services:
             - "15672:15672"
         volumes:
             - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+
     postgresql:
         image: postgres:13-alpine 
         container_name: postgresql
@@ -22,6 +23,7 @@ services:
         volumes:
             - postgresql:/var/lib/postgresql/data 
             - ./scripts/docker-schema.sql:/docker-entrypoint-initdb.d/0_init.sql
+
     audio-converter-api:
         build:
             context: ./
@@ -35,6 +37,7 @@ services:
         ports:
             - "8000:8000"
         depends_on: [postgresql, rabbitmq]
+        
     audio-converter:
         build:
             context: ./
