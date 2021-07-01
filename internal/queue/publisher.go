@@ -32,7 +32,7 @@ func (qm *QueueManager) SendConversionData(fileID, filename, sourceFormat, targe
 	err = qm.ch.Publish("", qm.name, false, false,
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
+			ContentType:  "application/json",
 			Body:         []byte(body),
 		})
 	if err != nil {
