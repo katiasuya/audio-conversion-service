@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
@@ -26,14 +28,28 @@ type Storage struct {
 	downloader *s3manager.Downloader
 }
 
-// New creates a new storage with the given client.
-func New(svc *s3.S3, bucket string, uploader *s3manager.Uploader, downloader *s3manager.Downloader) *Storage {
+// NewS3Client creates new S3 client.
+func NewS3Client(bucket, region, accessKeyID, secretAccessKey string) (*Storage, error) {
+	sess, err := session.NewSession(
+		&aws.Config{
+			Region:      aws.String(region),
+			Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("can't create new session: %w", err)
+	}
+
+	downloader := s3manager.NewDownloader(sess)
+	uploader := s3manager.NewUploader(sess)
+	svc := s3.New(sess)
+
 	return &Storage{
 		svc:        svc,
 		bucket:     bucket,
 		uploader:   uploader,
 		downloader: downloader,
-	}
+	}, nil
 }
 
 // UploadFile uploads request file.
