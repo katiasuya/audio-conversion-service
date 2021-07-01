@@ -19,7 +19,7 @@ func NewRabbitMQClient(url, queue string) (*amqp.Connection, *amqp.Channel, erro
 		return nil, nil, fmt.Errorf("can't open a channel: %w", err)
 	}
 
-	_, err = ch.QueueDeclare("conversion_requests", true, false, false, false, nil)
+	_, err = ch.QueueDeclare(queue, true, false, false, false, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't declare a queue: %w", err)
 	}
