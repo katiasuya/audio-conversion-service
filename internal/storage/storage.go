@@ -13,7 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
-const LocationTemplate = "/tmp/%s.%s"
+const (
+	filenameTmpl = "%s.%s"
+	LocationTmpl = "/tmp/" + filenameTmpl
+)
 
 // Storage represents aws s3 client.
 type Storage struct {
@@ -45,7 +48,7 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 		return "", err
 	}
 
-	file, err := os.Create(fmt.Sprintf(LocationTemplate, fileIDStr, format))
+	file, err := os.Create(fmt.Sprintf(LocationTmpl, fileIDStr, format))
 	if err != nil {
 		return "", fmt.Errorf("can't create local file, %w", err)
 	}
@@ -61,7 +64,7 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 func (s *Storage) UploadFileToCloud(sourceFile io.Reader, fileID, format string) error {
 	_, err := s.uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(fileID + "." + format),
+		Key:    aws.String(fmt.Sprintf(filenameTmpl, fileID, format)),
 		Body:   sourceFile,
 	})
 	if err != nil {
@@ -74,7 +77,7 @@ func (s *Storage) UploadFileToCloud(sourceFile io.Reader, fileID, format string)
 func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
 	req, _ := s.svc.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(fileID + "." + format),
+		Key:    aws.String(fmt.Sprintf(filenameTmpl, fileID, format)),
 	})
 	urlStr, err := req.Presign(15 * time.Minute)
 	if err != nil {
@@ -86,7 +89,7 @@ func (s *Storage) GetDownloadURL(fileID, format string) (string, error) {
 
 // DownloadFileFromCloud downloads request file from s3 cloud storage.
 func (s *Storage) DownloadFileFromCloud(fileID, format string) error {
-	filename := fmt.Sprintf(LocationTemplate, fileID, format)
+	filename := fmt.Sprintf(LocationTmpl, fileID, format)
 
 	file, err := os.Create(filename)
 	if err != nil {
@@ -97,7 +100,7 @@ func (s *Storage) DownloadFileFromCloud(fileID, format string) error {
 	_, err = s.downloader.Download(file,
 		&s3.GetObjectInput{
 			Bucket: aws.String(s.bucket),
-			Key:    aws.String(fileID + "." + format),
+			Key:    aws.String(fmt.Sprintf(filenameTmpl, fileID, format)),
 		})
 	if err != nil {
 		return fmt.Errorf("can't download file from S3, %w", err)

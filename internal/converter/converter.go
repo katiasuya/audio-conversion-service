@@ -48,8 +48,8 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 	}
 	targetFileIDStr := targetFileID.String()
 
-	sourceLocation := fmt.Sprintf(storage.LocationTemplate, fileID, sourceFormat)
-	targetLocation := fmt.Sprintf(storage.LocationTemplate, targetFileIDStr, targetFormat)
+	sourceLocation := fmt.Sprintf(storage.LocationTmpl, fileID, sourceFormat)
+	targetLocation := fmt.Sprintf(storage.LocationTmpl, targetFileIDStr, targetFormat)
 
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	if err = cmd.Run(); err != nil {
