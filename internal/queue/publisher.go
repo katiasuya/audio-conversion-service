@@ -9,13 +9,6 @@ import (
 
 //SendConversionData sends conversion request data to the queue.
 func (qm *QueueManager) SendConversionData(fileID, filename, sourceFormat, targetFormat, requestID string) error {
-	type conversionData struct {
-		FileID       string
-		Filename     string
-		SourceFormat string
-		TargetFormat string
-		RequestID    string
-	}
 	convData := conversionData{
 		FileID:       fileID,
 		Filename:     filename,

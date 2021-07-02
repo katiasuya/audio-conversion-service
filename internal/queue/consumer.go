@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
@@ -27,6 +28,14 @@ func New(name string, ch *amqp.Channel, converter *converter.Converter) *QueueMa
 	}
 }
 
+type conversionData struct {
+	FileID       string
+	Filename     string
+	SourceFormat string
+	TargetFormat string
+	RequestID    string
+}
+
 //ProcessMsgs processes messages coming from the queue, i.e conversion requests.
 func (qm *QueueManager) ProcessMsgs() error {
 	err := qm.ch.Qos(1, 0, false)
@@ -39,32 +48,26 @@ func (qm *QueueManager) ProcessMsgs() error {
 		return fmt.Errorf("can't register a consumer: %w", err)
 	}
 
-	consumeMsgs := make(chan bool)
-
-	type conversionData struct {
-		FileID       string
-		Filename     string
-		SourceFormat string
-		TargetFormat string
-		RequestID    string
-	}
-
-	go func() {
-		for d := range msgs {
-			var data conversionData
-			if err := json.NewDecoder(bytes.NewReader(d.Body)).Decode(&data); err != nil {
-				logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
+	for {
+		select {
+		case msg, ok := <-msgs:
+			if !ok {
+				return errors.New("delivery channel is closed")
 			}
-			err := qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID)
-			if err != nil {
-				logger.Error(context.Background(), err)
-			}
+			go func() {
+				var data conversionData
+				if err := json.NewDecoder(bytes.NewReader(msg.Body)).Decode(&data); err != nil {
+					logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
+				}
 
-			d.Ack(false)
+				if err := qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID); err != nil {
+					logger.Error(context.Background(), err)
+				}
+
+				if err := msg.Ack(false); err != nil {
+					logger.Error(context.Background(), err)
+				}
+			}()
 		}
-	}()
-
-	<-consumeMsgs
-
-	return nil
+	}
 }
