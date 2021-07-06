@@ -7,20 +7,36 @@ import (
 
 // Config represents configuration parameters for the application.
 type Config struct {
-	Host            string `required:"true"`
-	Port            string `required:"true"`
-	Username        string `required:"true"`
-	Password        string `required:"true"`
-	DBName          string `required:"true"`
-	SSLMode         string `required:"true"`
-	PrivateKey      string `required:"true"`
-	PublicKey       string `required:"true"`
-	AccessKeyID     string `required:"true"`
-	SecretAccessKey string `required:"true"`
-	Region          string `required:"true"`
-	Bucket          string `required:"true"`
-	AmpqURI         string `required:"true"`
-	QueueName       string `required:"true"`
+	PostgresData
+	JWTKeys
+	AWSData
+	RabbitMQData
+}
+
+type PostgresData struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	DBName   string
+	SSLMode  string
+}
+
+type JWTKeys struct {
+	PrivateKey string
+	PublicKey  string
+}
+
+type AWSData struct {
+	AccessKeyID     string
+	SecretAccessKey string
+	Region          string
+	Bucket          string
+}
+
+type RabbitMQData struct {
+	AmpqURI   string
+	QueueName string
 }
 
 // Load loads configuration parameters to Config from environment variables.
