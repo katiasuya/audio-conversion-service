@@ -29,7 +29,6 @@ func ValidateUserCredentials(username, password string) error {
 	if len(username) < minLength || len(username) > maxLength {
 		return errInvalidLength
 	}
-
 	if containsInvalidChars(username) {
 		return errInvalidChars
 	}
@@ -64,7 +63,6 @@ func ValidateRequest(name, sourceFormat, targetFormat, sourceContentType string)
 	if _, ok := formats[targetFormat]; !ok {
 		return errors.New("invalid target format, need mp3 or wav")
 	}
-
 	if containsInvalidChars(name) {
 		return errInvalidChars
 	}

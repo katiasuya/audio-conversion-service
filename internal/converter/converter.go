@@ -34,10 +34,8 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 		if updateErr != nil {
 			return fmt.Errorf("can't update request: %w", err)
 		}
-
 		return err
 	}
-
 	return nil
 }
 
