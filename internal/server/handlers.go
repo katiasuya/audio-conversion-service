@@ -12,7 +12,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/katiasuya/audio-conversion-service/internal/appcontext"
 	"github.com/katiasuya/audio-conversion-service/internal/auth"
-	"github.com/katiasuya/audio-conversion-service/internal/converter"
+	"github.com/katiasuya/audio-conversion-service/internal/queue"
+
 	"github.com/katiasuya/audio-conversion-service/internal/logger"
 	"github.com/katiasuya/audio-conversion-service/internal/repository"
 	res "github.com/katiasuya/audio-conversion-service/internal/server/response"
@@ -22,19 +23,19 @@ import (
 
 // Server represents application server.
 type Server struct {
-	repo      *repository.Repository
-	storage   *storage.Storage
-	converter *converter.Converter
-	tokenMgr  *auth.TokenManager
+	repo     *repository.Repository
+	storage  *storage.Storage
+	tokenMgr *auth.TokenManager
+	queueMgr *queue.QueueManager
 }
 
 // New creates new application server.
-func New(repo *repository.Repository, storage *storage.Storage, converter *converter.Converter, tokenMgr *auth.TokenManager) *Server {
+func New(repo *repository.Repository, storage *storage.Storage, tokenMgr *auth.TokenManager, queueMgr *queue.QueueManager) *Server {
 	return &Server{
-		repo:      repo,
-		storage:   storage,
-		converter: converter,
-		tokenMgr:  tokenMgr,
+		repo:     repo,
+		storage:  storage,
+		tokenMgr: tokenMgr,
+		queueMgr: queueMgr,
 	}
 }
 
@@ -213,7 +214,7 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.converter.Convert(r.Context(), fileID, filename, sourceFormat, targetFormat, requestID)
+	s.queueMgr.SendConversionData(fileID, filename, sourceFormat, targetFormat, requestID)
 
 	type response struct {
 		ID string `json:"id"`

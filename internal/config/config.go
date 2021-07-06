@@ -19,6 +19,8 @@ type Config struct {
 	SecretAccessKey string `required:"true"`
 	Region          string `required:"true"`
 	Bucket          string `required:"true"`
+	AmpqURI         string `required:"true"`
+	QueueName       string `required:"true"`
 }
 
 // Load loads configuration parameters to Config from environment variables.
@@ -27,7 +29,7 @@ func (c *Config) Load() {
 	c.Port = os.Getenv("POSTGRES_PORT")
 	c.Username = os.Getenv("POSTGRES_USER")
 	c.Password = os.Getenv("POSTGRES_PASSWORD")
-	c.DBName = os.Getenv("POSTGRES_DBNAME")
+	c.DBName = os.Getenv("POSTGRES_DB")
 	c.SSLMode = os.Getenv("SSLMODE")
 	c.PrivateKey = os.Getenv("PRIVATEKEY")
 	c.PublicKey = os.Getenv("PUBLICKEY")
@@ -35,4 +37,6 @@ func (c *Config) Load() {
 	c.SecretAccessKey = os.Getenv("AWS_SECRETACCESSKEY")
 	c.Region = os.Getenv("AWS_REGION")
 	c.Bucket = os.Getenv("AWS_BUCKET")
+	c.AmpqURI = os.Getenv("AMQP_URI")
+	c.QueueName = os.Getenv("QUEUE_NAME")
 }

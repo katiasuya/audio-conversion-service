@@ -1,6 +1,17 @@
 version: '3.1'
 
 services:
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        container_name: rabbitmq
+        env_file: .env
+        restart: always
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+
     postgresql:
         image: postgres:13-alpine 
         container_name: postgresql
@@ -12,18 +23,32 @@ services:
         volumes:
             - postgresql:/var/lib/postgresql/data 
             - ./scripts/docker-schema.sql:/docker-entrypoint-initdb.d/0_init.sql
+
+    audio-converter-api:
+        build:
+            context: ./
+            dockerfile: Dockerfile.api
+        container_name: api
+        env_file: .env
+        restart: always
+        hostname: "api.local"
+        environment:
+            WAIT_HOSTS: postgresql:5432, rabbitmq:5672
+        ports:
+            - "8000:8000"
+        depends_on: [postgresql, rabbitmq]
+        
     audio-converter:
         build:
             context: ./
-        container_name: audio-converter
+            dockerfile: Dockerfile.converter
+        container_name: converter
         env_file: .env
         restart: always
         hostname: "converter.local"
         environment:
-            WAIT_HOSTS: postgresql:5432
-        ports:
-            - "8000:8000"
-        depends_on: [postgresql]
+            WAIT_HOSTS: postgresql:5432, rabbitmq:5672
+        depends_on: [postgresql, rabbitmq]        
 
 volumes:
     postgresql:

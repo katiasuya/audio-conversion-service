@@ -8,7 +8,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-// TokenManager has methods to use jwt and contains private and public keys.
+// TokenManager provides methods to use jwt and contains private and public keys.
 type TokenManager struct {
 	privateKey string
 	publicKey  string
