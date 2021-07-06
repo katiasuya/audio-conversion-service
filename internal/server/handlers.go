@@ -98,13 +98,15 @@ func (s *Server) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req request
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
 		logAndRespondErr(r.Context(), w, "can't decode request body", err, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
-	if err := ValidateUserCredentials(req.Username, req.Password); err != nil {
+	err = ValidateUserCredentials(req.Username, req.Password)
+	if err != nil {
 		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid user credentials: %w", err))
 		return
 	}
@@ -143,7 +145,8 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req request
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
 		logAndRespondErr(r.Context(), w, "can't decode request body", err, http.StatusUnauthorized)
 		return
 	}
@@ -159,7 +162,8 @@ func (s *Server) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hash.CheckPasswordHash(req.Password, hashedPwd) {
+	ok := hash.CheckPasswordHash(req.Password, hashedPwd)
+	if !ok {
 		res.RespondErr(w, http.StatusUnauthorized, errors.New("invalid username or password"))
 		return
 	}
@@ -191,7 +195,8 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 	targetFormat := strings.ToLower(r.FormValue("targetFormat"))
 	filename := strings.TrimSuffix(header.Filename, "."+sourceFormat)
 
-	if err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0]); err != nil {
+	err = ValidateRequest(filename, sourceFormat, targetFormat, sourceContentType[0])
+	if err != nil {
 		res.RespondErr(w, http.StatusBadRequest, fmt.Errorf("invalid request: %w", err))
 		return
 	}

@@ -56,15 +56,18 @@ func (qm *QueueManager) ProcessMsgs() error {
 			}
 			go func() {
 				var data conversionData
-				if err := json.NewDecoder(bytes.NewReader(msg.Body)).Decode(&data); err != nil {
+				err := json.NewDecoder(bytes.NewReader(msg.Body)).Decode(&data)
+				if err != nil {
 					logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
 				}
 
-				if err := qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID); err != nil {
+				err = qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID)
+				if err != nil {
 					logger.Error(context.Background(), err)
 				}
 
-				if err := msg.Ack(false); err != nil {
+				err = msg.Ack(false)
+				if err != nil {
 					logger.Error(context.Background(), err)
 				}
 			}()

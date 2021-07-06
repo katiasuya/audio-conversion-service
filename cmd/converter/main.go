@@ -9,5 +9,6 @@ import (
 )
 
 func main() {
-	logger.Fatal(context.Background(), fmt.Errorf("converter failed to start: %w", app.RunConverter()))
+	err := app.RunConverter()
+	logger.Fatal(context.Background(), fmt.Errorf("converter failed to start: %w", err))
 }

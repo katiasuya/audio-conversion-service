@@ -9,5 +9,6 @@ import (
 )
 
 func main() {
-	logger.Fatal(context.Background(), fmt.Errorf("API failed to start: %w", app.RunAPI()))
+	err := app.RunAPI()
+	logger.Fatal(context.Background(), fmt.Errorf("API failed to start: %w", err))
 }

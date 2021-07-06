@@ -28,11 +28,13 @@ func New(repo *repository.Repository, storage *storage.Storage) *Converter {
 
 // Process implements audio conversion process.
 func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, requestID string) error {
-	if err := c.repo.UpdateRequest(requestID, status[0], ""); err != nil {
+	err := c.repo.UpdateRequest(requestID, status[0], "")
+	if err != nil {
 		return fmt.Errorf("can't update request: %w", err)
 	}
 
-	if err := c.storage.DownloadFileFromCloud(fileID, sourceFormat); err != nil {
+	err = c.storage.DownloadFileFromCloud(fileID, sourceFormat)
+	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
 			return fmt.Errorf("can't update request: %w", err)
 		}
@@ -52,7 +54,8 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 	targetLocation := fmt.Sprintf(storage.LocationTmpl, targetFileIDStr, targetFormat)
 
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
-	if err = cmd.Run(); err != nil {
+	err = cmd.Run()
+	if err != nil {
 		if updateErr := c.repo.UpdateRequest(requestID, status[2], ""); updateErr != nil {
 			return fmt.Errorf("can't update request: %w", err)
 		}
@@ -83,7 +86,8 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 		return fmt.Errorf("can't insert audio: %w", err)
 	}
 
-	if err := c.repo.UpdateRequest(requestID, status[1], targetID); err != nil {
+	err = c.repo.UpdateRequest(requestID, status[1], targetID)
+	if err != nil {
 		return fmt.Errorf("can't update request: %w", err)
 	}
 

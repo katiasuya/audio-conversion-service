@@ -60,7 +60,8 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 	}
 	fileIDStr := fileID.String()
 
-	if err := s.UploadFileToCloud(sourceFile, fileIDStr, format); err != nil {
+	err = s.UploadFileToCloud(sourceFile, fileIDStr, format)
+	if err != nil {
 		return "", err
 	}
 
@@ -69,7 +70,9 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 		return "", fmt.Errorf("can't create local file, %w", err)
 	}
 	defer file.Close()
-	if _, err := io.Copy(file, sourceFile); err != nil {
+
+	_, err = io.Copy(file, sourceFile)
+	if err != nil {
 		return "", fmt.Errorf("can't copy file, %w", err)
 	}
 
