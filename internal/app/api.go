@@ -45,7 +45,7 @@ func RunAPI() error {
 	}
 	defer conn.Close()
 	defer ch.Close()
-	logger.Info(ctx, "connnected to RabbitMQ successfully")
+	logger.Info(ctx, "connected to RabbitMQ successfully")
 
 	queueMgr := queue.New(conf.QueueName, ch, nil)
 	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)

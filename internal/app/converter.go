@@ -41,7 +41,7 @@ func RunConverter() error {
 	}
 	defer conn.Close()
 	defer ch.Close()
-	logger.Info(ctx, "connnected to RabbitMQ successfully")
+	logger.Info(ctx, "connected to RabbitMQ successfully")
 
 	converter := converter.New(repo, storage)
 	logger.Info(ctx, "converter initialized successfully")
