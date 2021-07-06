@@ -219,7 +219,11 @@ func (s *Server) ConversionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.queueMgr.SendConversionData(fileID, filename, sourceFormat, targetFormat, requestID)
+	err = s.queueMgr.SendConversionData(fileID, filename, sourceFormat, targetFormat, requestID)
+	if err != nil {
+		logAndRespondErr(r.Context(), w, "can't send data to queue", err, http.StatusInternalServerError)
+		return
+	}
 
 	type response struct {
 		ID string `json:"id"`
