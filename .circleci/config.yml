@@ -14,11 +14,11 @@ jobs:
           password: $DOCKERHUB_PASSWORD
       - image: postgres:13-alpine
         environment:
-          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          CONVERTER_PASSWORD: $POSTGRES_PASSWORD
       - image: rabbitmq:3-management-alpine
         environment:
-          AMQP_URI: $AMQP_URI   
-          QUEUE_NAME: $QUEUE_NAME  
+          CONVERTER_URI: $AMQP_URI   
+          CONVERTER_QUEUENAME: $QUEUE_NAME  
 
     parallelism: 2
 
@@ -99,11 +99,11 @@ jobs:
           password: $DOCKERHUB_PASSWORD
       - image: postgres:13-alpine
         environment:
-          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          CONVERTER_PASSWORD: $POSTGRES_PASSWORD
       - image: rabbitmq:3-management-alpine
         environment:
-          AMQP_URI: $AMQP_URI   
-          QUEUE_NAME: $QUEUE_NAME  
+          CONVERTER_URI: $AMQP_URI   
+          CONVERTER_QUEUENAME: $QUEUE_NAME  
 
     parallelism: 2
 
@@ -149,7 +149,7 @@ jobs:
       - run:
           name: Create database schema
           command: >-
-            psql postgres://postgres:$POSTGRES_PASSWORD@localhost:5432 
+            psql postgres://postgres:$CONVERTER_PASSWORD@localhost:5432 
             --variable=user_var=TestUser 
             --variable=password_var=TestPassword 
             -f ./scripts/schema.sql

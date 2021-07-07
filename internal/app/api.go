@@ -20,9 +20,13 @@ import (
 func RunAPI() error {
 	ctx := context.Background()
 
-	var conf config.Config
-	conf.Load()
+	conf, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("can't load configuration: %w", err)
+	}
 	logger.Info(ctx, "configuration data loaded")
+
+	logger.Info(ctx, fmt.Sprintf("%+#v", conf))
 
 	db, err := repository.NewPostgresClient(&conf.PostgresData)
 	if err != nil {

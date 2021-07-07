@@ -10,7 +10,7 @@ import (
 
 // NewRabbitMQClient creates new rabbitmq connection.
 func NewRabbitMQClient(conf *config.RabbitMQData) (*amqp.Connection, *amqp.Channel, error) {
-	conn, err := amqp.Dial(conf.AmpqURI)
+	conn, err := amqp.Dial(conf.URI)
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't connect to RabbitMQ: %w", err)
 	}

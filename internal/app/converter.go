@@ -16,8 +16,10 @@ import (
 func RunConverter() error {
 	ctx := context.Background()
 
-	var conf config.Config
-	conf.Load()
+	conf, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("can't load configuration: %w", err)
+	}
 	logger.Info(ctx, "configuration data loaded")
 
 	db, err := repository.NewPostgresClient(&conf.PostgresData)

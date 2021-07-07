@@ -2,7 +2,7 @@
 package config
 
 import (
-	"os"
+	"github.com/kelseyhightower/envconfig"
 )
 
 // Config represents configuration parameters for the application.
@@ -16,9 +16,9 @@ type Config struct {
 type PostgresData struct {
 	Host     string
 	Port     string
-	Username string
+	User     string
 	Password string
-	DBName   string
+	DB       string
 	SSLMode  string
 }
 
@@ -35,24 +35,17 @@ type AWSData struct {
 }
 
 type RabbitMQData struct {
-	AmpqURI   string
+	URI       string
 	QueueName string
 }
 
 // Load loads configuration parameters to Config from environment variables.
-func (c *Config) Load() {
-	c.Host = os.Getenv("POSTGRES_HOST")
-	c.Port = os.Getenv("POSTGRES_PORT")
-	c.Username = os.Getenv("POSTGRES_USER")
-	c.Password = os.Getenv("POSTGRES_PASSWORD")
-	c.DBName = os.Getenv("POSTGRES_DB")
-	c.SSLMode = os.Getenv("SSLMODE")
-	c.PrivateKey = os.Getenv("PRIVATEKEY")
-	c.PublicKey = os.Getenv("PUBLICKEY")
-	c.AccessKeyID = os.Getenv("AWS_ACCESSKEYID")
-	c.SecretAccessKey = os.Getenv("AWS_SECRETACCESSKEY")
-	c.Region = os.Getenv("AWS_REGION")
-	c.Bucket = os.Getenv("AWS_BUCKET")
-	c.AmpqURI = os.Getenv("AMQP_URI")
-	c.QueueName = os.Getenv("QUEUE_NAME")
+func Load() (*Config, error) {
+	var conf Config
+	err := envconfig.Process("converter", &conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &conf, nil
 }
