@@ -90,6 +90,8 @@ jobs:
           username: katiasuya
           password: $DOCKERHUB_PASSWORD
       - image: postgres:13-alpine
+        environment:
+          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       - image: rabbitmq:3-management-alpine
 
     parallelism: 2
