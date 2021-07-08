@@ -4,7 +4,9 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
+	"github.com/katiasuya/audio-conversion-service/internal/config"
 	"github.com/katiasuya/audio-conversion-service/internal/server/model"
 	"github.com/lib/pq"
 )
@@ -25,10 +27,19 @@ type Repository struct {
 }
 
 // New creates a new repository with provided database.
-func New(db *sql.DB) *Repository {
+func New(conf *config.PostgresData) (*Repository, error) {
+	db, err := NewPostgresClient(conf)
+	if err != nil {
+		return nil, fmt.Errorf("can't connect to database: %w", err)
+	}
 	return &Repository{
 		db: db,
-	}
+	}, nil
+}
+
+// Close closes db connection.
+func (r *Repository) Close() {
+	r.db.Close()
 }
 
 // InsertUser inserts the user into users table.

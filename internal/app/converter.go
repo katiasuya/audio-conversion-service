@@ -22,14 +22,12 @@ func RunConverter() error {
 	}
 	logger.Info(ctx, "configuration data loaded")
 
-	db, err := repository.NewPostgresClient(&conf.PostgresData)
+	repo, err := repository.New(&conf.PostgresData)
 	if err != nil {
-		return fmt.Errorf("can't connect to database: %w", err)
+		return err
 	}
-	defer db.Close()
-	logger.Info(ctx, "connected to database")
-
-	repo := repository.New(db)
+	defer repo.Close()
+	logger.Info(ctx, "connected to database succesfully")
 
 	storage, err := storage.NewS3Client(&conf.AWSData)
 	if err != nil {
