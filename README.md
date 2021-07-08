@@ -12,29 +12,29 @@ To set the configuration parameters for the application, set the following envir
 
 [1]  
 ```bash
-HOST=your_host # default is localhost
-PORT=your_port # default is 5432 
-POSTGRES_USER=your_postgres_user 
-POSTGRES_PASSWORD=your_postgres_password  
-POSTGRES_DB=audioconverter  
-SSLMODE=disable  
+CONVERTER_HOST=your_host 
+CONVERTER_PORT=your_port 
+CONVERTER_USER=your_postgres_user 
+CONVERTER_PASSWORD=your_postgres_password  
+CONVERTER_DB=audioconverter  
+CONVERTER_SSLMODE=disable  
 ```
 [2]  
 ```bash
-PRIVATEKEY="`cat your_private_key_path`"
-PUBLICKEY="`cat your_public_key_path`" 
+CONVERTER_PRIVATEKEY="`cat your_private_key_path`"
+CONVERTER_PUBLICKEY="`cat your_public_key_path`" 
 ```
 [3]  
 ```bash
-AWS_ACCESS_KEY_ID=your_access_key_id  
-AWS_SECRET_ACCESS_KEY=your_secret_access_key  
-AWS_REGION=your_region  
-AWS_BUCKET=your_bucket_name  
+CONVERTER_ACCESSKEYID=your_access_key_id  
+CONVERTER_SECRETACCESSKEY=your_secret_access_key  
+CONVERTER_REGION=your_region  
+CONVERTER_BUCKET=your_bucket_name  
 ```
 [4]  
 ```bash
-AMQP_URI=your_ampq_uri
-QUEUE_NAME=your_queue_name 
+CONVERTER_URI=your_ampq_uri
+CONVERTER_QUEUENAME=your_queue_name 
 ```
 
 ## DataBase

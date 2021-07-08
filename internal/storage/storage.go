@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/google/uuid"
+	"github.com/katiasuya/audio-conversion-service/internal/config"
 )
 
 const (
@@ -29,11 +30,11 @@ type Storage struct {
 }
 
 // NewS3Client creates new S3 client.
-func NewS3Client(bucket, region, accessKeyID, secretAccessKey string) (*Storage, error) {
+func NewS3Client(conf *config.AWSData) (*Storage, error) {
 	sess, err := session.NewSession(
 		&aws.Config{
-			Region:      aws.String(region),
-			Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
+			Region:      aws.String(conf.Region),
+			Credentials: credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""),
 		},
 	)
 	if err != nil {
@@ -46,7 +47,7 @@ func NewS3Client(bucket, region, accessKeyID, secretAccessKey string) (*Storage,
 
 	return &Storage{
 		svc:        svc,
-		bucket:     bucket,
+		bucket:     conf.Bucket,
 		uploader:   uploader,
 		downloader: downloader,
 	}, nil
@@ -60,7 +61,8 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 	}
 	fileIDStr := fileID.String()
 
-	if err := s.UploadFileToCloud(sourceFile, fileIDStr, format); err != nil {
+	err = s.UploadFileToCloud(sourceFile, fileIDStr, format)
+	if err != nil {
 		return "", err
 	}
 
@@ -69,7 +71,9 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 		return "", fmt.Errorf("can't create local file, %w", err)
 	}
 	defer file.Close()
-	if _, err := io.Copy(file, sourceFile); err != nil {
+
+	_, err = io.Copy(file, sourceFile)
+	if err != nil {
 		return "", fmt.Errorf("can't copy file, %w", err)
 	}
 

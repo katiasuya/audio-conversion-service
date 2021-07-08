@@ -20,11 +20,15 @@ import (
 func RunAPI() error {
 	ctx := context.Background()
 
-	var conf config.Config
-	conf.Load()
+	conf, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("can't load configuration: %w", err)
+	}
 	logger.Info(ctx, "configuration data loaded")
 
-	db, err := repository.NewPostgresClient(&conf)
+	logger.Info(ctx, fmt.Sprintf("%+#v", conf))
+
+	db, err := repository.NewPostgresClient(&conf.PostgresData)
 	if err != nil {
 		return fmt.Errorf("can't connect to database: %w", err)
 	}
@@ -33,22 +37,22 @@ func RunAPI() error {
 
 	repo := repository.New(db)
 
-	storage, err := storage.NewS3Client(conf.Bucket, conf.Region, conf.AccessKeyID, conf.SecretAccessKey)
+	storage, err := storage.NewS3Client(&conf.AWSData)
 	if err != nil {
 		return fmt.Errorf("can't connect to S3: %w", err)
 	}
 	logger.Info(ctx, "connected to S3 successfully")
 
-	conn, ch, err := queue.NewRabbitMQClient(conf.AmpqURI, conf.QueueName)
+	conn, ch, err := queue.NewRabbitMQClient(&conf.RabbitMQData)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 	defer ch.Close()
-	logger.Info(ctx, "connnected to RabbitMQ successfully")
+	logger.Info(ctx, "connected to RabbitMQ successfully")
 
 	queueMgr := queue.New(conf.QueueName, ch, nil)
-	tokenMgr := auth.New(conf.PublicKey, conf.PrivateKey)
+	tokenMgr := auth.New(&conf.JWTKeys)
 
 	server := server.New(repo, storage, tokenMgr, queueMgr)
 

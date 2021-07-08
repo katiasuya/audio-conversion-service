@@ -6,6 +6,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/katiasuya/audio-conversion-service/internal/config"
 )
 
 // TokenManager provides methods to use jwt and contains private and public keys.
@@ -15,10 +16,10 @@ type TokenManager struct {
 }
 
 // New returns new token manager with the given keys.
-func New(publicKey, privateKey string) *TokenManager {
+func New(conf *config.JWTKeys) *TokenManager {
 	return &TokenManager{
-		privateKey: privateKey,
-		publicKey:  publicKey,
+		privateKey: conf.PrivateKey,
+		publicKey:  conf.PublicKey,
 	}
 }
 

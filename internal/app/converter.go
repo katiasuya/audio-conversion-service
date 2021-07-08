@@ -16,11 +16,13 @@ import (
 func RunConverter() error {
 	ctx := context.Background()
 
-	var conf config.Config
-	conf.Load()
+	conf, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("can't load configuration: %w", err)
+	}
 	logger.Info(ctx, "configuration data loaded")
 
-	db, err := repository.NewPostgresClient(&conf)
+	db, err := repository.NewPostgresClient(&conf.PostgresData)
 	if err != nil {
 		return fmt.Errorf("can't connect to database: %w", err)
 	}
@@ -29,19 +31,19 @@ func RunConverter() error {
 
 	repo := repository.New(db)
 
-	storage, err := storage.NewS3Client(conf.Bucket, conf.Region, conf.AccessKeyID, conf.SecretAccessKey)
+	storage, err := storage.NewS3Client(&conf.AWSData)
 	if err != nil {
 		return fmt.Errorf("can't connect to S3: %w", err)
 	}
 	logger.Info(ctx, "connected to S3 successfully")
 
-	conn, ch, err := queue.NewRabbitMQClient(conf.AmpqURI, conf.QueueName)
+	conn, ch, err := queue.NewRabbitMQClient(&conf.RabbitMQData)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 	defer ch.Close()
-	logger.Info(ctx, "connnected to RabbitMQ successfully")
+	logger.Info(ctx, "connected to RabbitMQ successfully")
 
 	converter := converter.New(repo, storage)
 	logger.Info(ctx, "converter initialized successfully")

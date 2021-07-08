@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/katiasuya/audio-conversion-service/internal/converter"
@@ -49,25 +48,24 @@ func (qm *QueueManager) ProcessMsgs() error {
 	}
 
 	for {
-		select {
-		case msg, ok := <-msgs:
-			if !ok {
-				return errors.New("delivery channel is closed")
+		msg := <-msgs
+
+		go func() {
+			var data conversionData
+			err := json.NewDecoder(bytes.NewReader(msg.Body)).Decode(&data)
+			if err != nil {
+				logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
 			}
-			go func() {
-				var data conversionData
-				if err := json.NewDecoder(bytes.NewReader(msg.Body)).Decode(&data); err != nil {
-					logger.Error(context.Background(), fmt.Errorf("can't decode message: %w", err))
-				}
 
-				if err := qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID); err != nil {
-					logger.Error(context.Background(), err)
-				}
+			err = qm.converter.Process(data.FileID, data.Filename, data.SourceFormat, data.TargetFormat, data.RequestID)
+			if err != nil {
+				logger.Error(context.Background(), err)
+			}
 
-				if err := msg.Ack(false); err != nil {
-					logger.Error(context.Background(), err)
-				}
-			}()
-		}
+			err = msg.Ack(false)
+			if err != nil {
+				logger.Error(context.Background(), err)
+			}
+		}()
 	}
 }
