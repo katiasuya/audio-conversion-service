@@ -10,7 +10,12 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/storage"
 )
 
-var status = []string{"processing", "done", "failed"}
+// Conversion statuses.
+const (
+	statusProcessing = "processing"
+	statusDone       = "done"
+	statusFailed     = "failed"
+)
 
 // Converter converts audio files to other formats.
 type Converter struct {
@@ -30,7 +35,7 @@ func New(repo *repository.Repository, storage *storage.Storage) *Converter {
 func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, requestID string) error {
 	err := c.convert(fileID, filename, sourceFormat, targetFormat, requestID)
 	if err != nil {
-		updateErr := c.repo.UpdateRequest(requestID, status[2], "")
+		updateErr := c.repo.UpdateRequest(requestID, statusFailed, "")
 		if updateErr != nil {
 			return fmt.Errorf("can't update request: %w", err)
 		}
@@ -40,7 +45,7 @@ func (c *Converter) Process(fileID, filename, sourceFormat, targetFormat, reques
 }
 
 func (c *Converter) convert(fileID, filename, sourceFormat, targetFormat, requestID string) error {
-	err := c.repo.UpdateRequest(requestID, status[0], "")
+	err := c.repo.UpdateRequest(requestID, statusProcessing, "")
 	if err != nil {
 		return fmt.Errorf("can't update request: %w", err)
 	}
@@ -76,7 +81,7 @@ func (c *Converter) convert(fileID, filename, sourceFormat, targetFormat, reques
 		return fmt.Errorf("can't insert audio: %w", err)
 	}
 
-	err = c.repo.UpdateRequest(requestID, status[1], targetID)
+	err = c.repo.UpdateRequest(requestID, statusDone, targetID)
 	if err != nil {
 		return fmt.Errorf("can't update request: %w", err)
 	}
