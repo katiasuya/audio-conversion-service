@@ -50,14 +50,10 @@ func (c *Converter) convert(fileID, filename, sourceFormat, targetFormat, reques
 		return err
 	}
 
-	targetFileID, err := uuid.NewRandom()
-	if err != nil {
-		return fmt.Errorf("can't generate target file uuid: %w", err)
-	}
-	targetFileIDStr := targetFileID.String()
+	targetFileID := uuid.NewString()
 
 	sourceLocation := fmt.Sprintf(storage.LocationTmpl, fileID, sourceFormat)
-	targetLocation := fmt.Sprintf(storage.LocationTmpl, targetFileIDStr, targetFormat)
+	targetLocation := fmt.Sprintf(storage.LocationTmpl, targetFileID, targetFormat)
 
 	cmd := exec.Command("ffmpeg", "-i", sourceLocation, targetLocation)
 	err = cmd.Run()
@@ -70,12 +66,12 @@ func (c *Converter) convert(fileID, filename, sourceFormat, targetFormat, reques
 		return fmt.Errorf("can't generate targetFileID: %w", err)
 	}
 
-	err = c.storage.UploadFileToCloud(targetFile, targetFileIDStr, targetFormat)
+	err = c.storage.UploadFileToCloud(targetFile, targetFileID, targetFormat)
 	if err != nil {
 		return fmt.Errorf("can't upload file to s3: %w", err)
 	}
 
-	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileIDStr)
+	targetID, err := c.repo.InsertAudio(filename, targetFormat, targetFileID)
 	if err != nil {
 		return fmt.Errorf("can't insert audio: %w", err)
 	}

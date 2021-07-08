@@ -55,18 +55,14 @@ func NewS3Client(conf *config.AWSData) (*Storage, error) {
 
 // UploadFile uploads request file.
 func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error) {
-	fileID, err := uuid.NewRandom()
-	if err != nil {
-		return "", fmt.Errorf("can't generate file uuid, %w", err)
-	}
-	fileIDStr := fileID.String()
+	fileID := uuid.NewString()
 
-	err = s.UploadFileToCloud(sourceFile, fileIDStr, format)
+	err := s.UploadFileToCloud(sourceFile, fileID, format)
 	if err != nil {
 		return "", err
 	}
 
-	file, err := os.Create(fmt.Sprintf(LocationTmpl, fileIDStr, format))
+	file, err := os.Create(fmt.Sprintf(LocationTmpl, fileID, format))
 	if err != nil {
 		return "", fmt.Errorf("can't create local file, %w", err)
 	}
@@ -77,7 +73,7 @@ func (s *Storage) UploadFile(sourceFile io.Reader, format string) (string, error
 		return "", fmt.Errorf("can't copy file, %w", err)
 	}
 
-	return fileIDStr, nil
+	return fileID, nil
 }
 
 // UploadFileToCloud uploads request file to s3 cloud storage.
