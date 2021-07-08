@@ -131,7 +131,7 @@ func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, erro
 // GetAudioByID gets the information about the audio with the given id.
 func (r *Repository) GetAudioByID(id string) (model.AudioInfo, error) {
 	var name, format, location string
-	const getAudioByID = `SELECT a.name, a.format, a.location FROM converter.audio  a WHERE id=$1;`
+	const getAudioByID = `SELECT name, format, location FROM converter.audio WHERE id = $1;`
 
 	err := r.db.QueryRow(getAudioByID, id).Scan(&name, &format, &location)
 	if err == sql.ErrNoRows {

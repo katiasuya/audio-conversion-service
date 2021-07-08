@@ -4,6 +4,7 @@ import "time"
 
 // AudioInfo represents downloaded audio information.
 type AudioInfo struct {
+	ID       string `json:"ID"`
 	Name     string `json:"name"`
 	Format   string `json:"format"`
 	Location string `json:"location"`
