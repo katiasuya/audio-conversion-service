@@ -26,16 +26,12 @@ func RunAPI() error {
 	}
 	logger.Info(ctx, "configuration data loaded")
 
-	logger.Info(ctx, fmt.Sprintf("%+#v", conf))
-
-	db, err := repository.NewPostgresClient(&conf.PostgresData)
+	repo, err := repository.New(&conf.PostgresData)
 	if err != nil {
-		return fmt.Errorf("can't connect to database: %w", err)
+		return err
 	}
-	defer db.Close()
-	logger.Info(ctx, "connected to database")
-
-	repo := repository.New(db)
+	defer repo.Close()
+	logger.Info(ctx, "connected to database successfully")
 
 	storage, err := storage.NewS3Client(&conf.AWSData)
 	if err != nil {
