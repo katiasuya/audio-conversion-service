@@ -54,7 +54,7 @@ func TestGetAudioByID(t *testing.T) {
 			tc.prepare(tc.expectedAudio)
 
 			gotAudio, err := repo.GetAudioByID(tc.expectedAudio.ID)
-			assertNoError(t, fmt.Errorf("an error '%w' was not expected when getting audio by ID", err))
+			assertNoError(t, fmt.Errorf("error '%w' when getting audio by ID", err))
 
 			if tc.expectedAudio != gotAudio {
 				t.Errorf("expected user to be %+v, but got %+v", tc.expectedAudio, gotAudio)
@@ -64,12 +64,11 @@ func TestGetAudioByID(t *testing.T) {
 			assertNoError(t, fmt.Errorf("there were unfulfilled expectations: %w", err))
 		})
 	}
-
 }
 
 func assertNoError(t *testing.T, err error) {
 	t.Helper()
 	if errors.Unwrap(err) != nil {
-		t.Errorf("No error expected, got %v error", err)
+		t.Errorf("No error expected, got %v ", err)
 	}
 }
