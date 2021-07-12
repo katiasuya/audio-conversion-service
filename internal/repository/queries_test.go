@@ -54,10 +54,52 @@ func TestGetAudioByID(t *testing.T) {
 			tc.prepare(tc.expectedAudio)
 
 			gotAudio, err := repo.GetAudioByID(tc.expectedAudio.ID)
-			assertNoError(t, fmt.Errorf("error '%w' when getting audio by ID", err))
+			assertNoError(t, fmt.Errorf("error when getting audio by ID: '%w'", err))
 
 			if tc.expectedAudio != gotAudio {
 				t.Errorf("expected user to be %+v, but got %+v", tc.expectedAudio, gotAudio)
+			}
+
+			err = mock.ExpectationsWereMet()
+			assertNoError(t, fmt.Errorf("there were unfulfilled expectations: %w", err))
+		})
+	}
+}
+func TestInsertUser(t *testing.T) {
+	db, mock := NewMock()
+	repo := &Repository{db}
+	defer repo.Close()
+
+	cases := []struct {
+		name         string
+		expectedUser model.User
+		prepare      func(model.User)
+	}{
+		{
+			name: "success",
+			expectedUser: model.User{
+				ID:       "1",
+				Username: "username",
+				Password: "password",
+			},
+			prepare: func(u model.User) {
+				mock.ExpectQuery(`INSERT INTO converter."user" (.+) RETURNING`).
+					WithArgs(u.Username, u.Password).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).
+						AddRow(u.ID))
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.prepare(tc.expectedUser)
+
+			userID, err := repo.InsertUser(tc.expectedUser.Username, tc.expectedUser.Password)
+			assertNoError(t, fmt.Errorf("error when inserting user: '%w'", err))
+
+			if tc.expectedUser.ID != userID {
+				t.Errorf("expected user id to be %q, but got %q", tc.expectedUser.ID, userID)
 			}
 
 			err = mock.ExpectationsWereMet()
