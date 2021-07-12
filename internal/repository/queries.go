@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/katiasuya/audio-conversion-service/internal/server/model"
+	"github.com/katiasuya/audio-conversion-service/internal/repository/model"
 	"github.com/lib/pq"
 )
 
@@ -104,14 +104,14 @@ func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, erro
 }
 
 // GetAudioByID gets the information about the audio with the given id.
-func (r *Repository) GetAudioByID(id string) (model.AudioInfo, error) {
-	var name, format, location string
+func (r *Repository) GetAudioByID(audioID string) (model.Audio, error) {
+	var id, name, format, location string
 	const getAudioByID = `SELECT name, format, location FROM converter.audio WHERE id = $1;`
 
-	err := r.db.QueryRow(getAudioByID, id).Scan(&name, &format, &location)
+	err := r.db.QueryRow(getAudioByID, audioID).Scan(&id, &name, &format, &location)
 	if err == sql.ErrNoRows {
-		return model.AudioInfo{}, ErrNoSuchAudio
+		return model.Audio{}, ErrNoSuchAudio
 	}
 
-	return model.AudioInfo{Name: name, Format: format, Location: location}, err
+	return model.Audio{ID: id, Name: name, Format: format, Location: location}, err
 }
