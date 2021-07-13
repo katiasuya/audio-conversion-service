@@ -56,8 +56,8 @@ func (r *Repository) InsertAudio(name, format, location string) (string, error) 
 // MakeRequest creates the conversion request and returns its id.
 func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, userID string) (string, error) {
 	var requestID string
-	const makeConversionRequest = `WITH audio_id AS (INSERT INTO converter.audio (name, format, location) VALUES
-	($1, $2, $3) RETURNING id)
+	const makeConversionRequest = `WITH audio_id AS (INSERT INTO converter.audio (name, format, location) 
+	VALUES ($1, $2, $3) RETURNING id)
 	INSERT INTO converter.request (user_id, source_id, source_format, target_id, target_format, status)
 	SELECT $4, id, $2, NULL, $5, 'queued'
 	FROM audio_id RETURNING id;`
