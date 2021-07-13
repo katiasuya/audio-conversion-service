@@ -3,7 +3,7 @@ package model
 import "time"
 
 // RequestInfo represents a history response.
-type RequestInfo struct {
+type Request struct {
 	ID           string
 	UserID       string
 	AudioName    string

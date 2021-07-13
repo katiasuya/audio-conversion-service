@@ -17,10 +17,11 @@ var (
 	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
 )
 
-// InsertUser inserts the user into users table.
+// InsertUser inserts the user into table "user".
 func (r *Repository) InsertUser(username, password string) (string, error) {
 	var userID string
 	const insertUserQuery = `INSERT INTO converter."user" (username, password) VALUES ($1, $2) RETURNING id`
+
 	err := r.db.QueryRow(insertUserQuery, username, password).Scan(&userID)
 	if err, ok := err.(*pq.Error); ok && err.Code == codeUniqueViolation {
 		return "", ErrUserAlreadyExists
@@ -33,6 +34,7 @@ func (r *Repository) InsertUser(username, password string) (string, error) {
 func (r *Repository) GetIDAndPasswordByUsername(username string) (string, string, error) {
 	var userID, password string
 	const getIDAndPasswordByUsername = `SELECT id, password FROM converter."user" WHERE username=$1;`
+
 	err := r.db.QueryRow(getIDAndPasswordByUsername, username).Scan(&userID, &password)
 	if err == sql.ErrNoRows {
 		return "", "", ErrNoSuchUser
@@ -41,7 +43,7 @@ func (r *Repository) GetIDAndPasswordByUsername(username string) (string, string
 	return userID, password, err
 }
 
-// InsertAudio inserts the audio into audio table.
+// InsertAudio inserts the audio into table "audio".
 func (r *Repository) InsertAudio(name, format, location string) (string, error) {
 	var audioID string
 	const insertAudio = `INSERT INTO converter.audio (name, format, location) VALUES
@@ -66,20 +68,19 @@ func (r *Repository) MakeRequest(name, sourceFormat, targetFormat, location, use
 
 // UpdateRequest updates the existing conversion request found by its id.
 func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
-	var nullStr sql.NullString
+	var dbTargetID sql.NullString
 	if targetID != "" {
-		nullStr = sql.NullString{String: targetID, Valid: true}
+		dbTargetID = sql.NullString{String: targetID, Valid: true}
 	}
 
-	const updateRequest = `UPDATE converter.request 
-	SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
+	const updateRequest = `UPDATE converter.request SET target_id=$2, status=$3 WHERE id=$1;`
+	_, err := r.db.Exec(updateRequest, requestID, dbTargetID, status)
 
-	row := r.db.QueryRow(updateRequest, requestID, nullStr, status)
-	return row.Err()
+	return err
 }
 
 // GetRequestHistory gets the information about user's requests.
-func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, error) {
+func (r *Repository) GetRequestHistory(userID string) ([]model.Request, error) {
 	const getUserRequests = `SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
     FROM converter.request r JOIN converter.audio a ON a.id = r.source_id
     WHERE r.user_id=$1;`
@@ -90,8 +91,8 @@ func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, erro
 	}
 	defer rows.Close()
 
-	var req model.RequestInfo
-	var reqs []model.RequestInfo
+	var req model.Request
+	var reqs []model.Request
 	for rows.Next() {
 		err = rows.Scan(&req.ID, &req.AudioName, &req.SourceFormat, &req.TargetFormat, &req.Created, &req.Updated, &req.Status)
 		if err != nil {
@@ -103,7 +104,7 @@ func (r *Repository) GetRequestHistory(userID string) ([]model.RequestInfo, erro
 	return reqs, rows.Err()
 }
 
-// GetAudioByID gets the information about the audio with the given id.
+// GetAudioByID gets information about the audio with the given id.
 func (r *Repository) GetAudioByID(audioID string) (model.Audio, error) {
 	var id, name, format, location string
 	const getAudioByID = `SELECT name, format, location FROM converter.audio WHERE id = $1;`
