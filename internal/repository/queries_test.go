@@ -13,34 +13,6 @@ import (
 	"github.com/katiasuya/audio-conversion-service/internal/repository/model"
 )
 
-var (
-	audio = model.Audio{
-		ID:       "1",
-		Name:     "Yesterday",
-		Format:   "mp3",
-		Location: "location",
-	}
-	user = model.User{
-		ID:       "1",
-		Username: "user123",
-		Password: "qwerty123",
-	}
-	request = model.Request{
-		ID:       "1",
-		TargetID: "3",
-		Status:   "queued",
-	}
-	history = model.Request{
-		ID:           "1",
-		AudioName:    "Yesterday",
-		SourceFormat: "mp3",
-		TargetFormat: "wav",
-		Created:      time.Time{},
-		Updated:      time.Time{},
-		Status:       "queued",
-	}
-)
-
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -55,6 +27,12 @@ func TestGetIDAndPasswordByUsername(t *testing.T) {
 	db, mock := NewMock()
 	repo := &Repository{db}
 	defer repo.Close()
+
+	user := model.User{
+		ID:       "1",
+		Username: "user123",
+		Password: "qwerty123",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(`SELECT (.*) FROM converter."user" WHERE username=?`).
@@ -92,6 +70,16 @@ func TestGetRequestHistory(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
+	history := model.Request{
+		ID:           "1",
+		AudioName:    "Yesterday",
+		SourceFormat: "mp3",
+		TargetFormat: "wav",
+		Created:      time.Time{},
+		Updated:      time.Time{},
+		Status:       "queued",
+	}
+
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(`SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
 		FROM converter.request r JOIN converter.audio a ON a.id = r.source_id WHERE r.user_id=?`).
@@ -115,6 +103,13 @@ func TestGetAudioByID(t *testing.T) {
 	db, mock := NewMock()
 	repo := &Repository{db}
 	defer repo.Close()
+
+	audio := model.Audio{
+		ID:       "1",
+		Name:     "Yesterday",
+		Format:   "mp3",
+		Location: "location",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery("SELECT (.*) FROM converter.audio WHERE id=?").
@@ -151,6 +146,12 @@ func TestInsertUser(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
+	user := model.User{
+		ID:       "1",
+		Username: "user123",
+		Password: "qwerty123",
+	}
+
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(`INSERT INTO converter."user" (.*) RETURNING`).
 			WithArgs(user.Username, user.Password).
@@ -173,6 +174,13 @@ func TestInsertAudio(t *testing.T) {
 	db, mock := NewMock()
 	repo := &Repository{db}
 	defer repo.Close()
+
+	audio := model.Audio{
+		ID:       "1",
+		Name:     "Yesterday",
+		Format:   "mp3",
+		Location: "location",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(`INSERT INTO converter.audio (.+) RETURNING`).
