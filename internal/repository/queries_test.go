@@ -99,11 +99,11 @@ func TestGetRequestHistory(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "source_format", "target_format", "created", "updated", "status"}).
 				AddRow(history.ID, history.AudioName, history.SourceFormat, history.TargetFormat, history.Created, history.Updated, history.Status))
 
-		gotRequest, err := repo.GetRequestHistory(history.UserID)
+		gotHistory, err := repo.GetRequestHistory(history.UserID)
 		assertNoError(t, fmt.Errorf("error when getting request history: '%w'", err))
 
-		if history != gotRequest[0] {
-			t.Errorf("expected request history to be %+v, but got %+v", history, gotRequest)
+		if history != gotHistory[0] {
+			t.Errorf("expected request history to be %+v, but got %+v", history, gotHistory)
 		}
 
 		err = mock.ExpectationsWereMet()
