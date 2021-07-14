@@ -200,6 +200,52 @@ func TestInsertAudio(t *testing.T) {
 	})
 }
 
+func TestUpdateRequest(t *testing.T) {
+	db, mock := NewMock()
+	repo := &Repository{db}
+	defer repo.Close()
+
+	t.Run("success", func(t *testing.T) {
+		request := model.Request{
+			ID:       "1",
+			TargetID: "3",
+			Status:   "queued",
+		}
+
+		mock.ExpectExec("UPDATE converter.request").
+			WithArgs(request.ID, request.TargetID, request.Status).
+			WillReturnResult(sqlmock.NewResult(0, 1))
+
+		err := repo.UpdateRequest(request.ID, request.Status, request.TargetID)
+		assertNoError(t, fmt.Errorf("error when updating request: '%w'", err))
+
+		err = mock.ExpectationsWereMet()
+		assertNoError(t, fmt.Errorf("there were unfulfilled expectations: %w", err))
+	})
+
+	t.Run("empty target id", func(t *testing.T) {
+		var request = struct {
+			ID       string
+			TargetID sql.NullString
+			Status   string
+		}{
+			ID:       "1",
+			TargetID: sql.NullString{},
+			Status:   "queued",
+		}
+
+		mock.ExpectExec("UPDATE converter.request").
+			WithArgs(request.ID, request.TargetID, request.Status).
+			WillReturnResult(sqlmock.NewResult(0, 1))
+
+		err := repo.UpdateRequest(request.ID, request.Status, "")
+		assertNoError(t, fmt.Errorf("error when updating request: '%w'", err))
+
+		err = mock.ExpectationsWereMet()
+		assertNoError(t, fmt.Errorf("there were unfulfilled expectations: %w", err))
+	})
+}
+
 func assertNoError(t *testing.T, err error) {
 	t.Helper()
 	if errors.Unwrap(err) != nil {

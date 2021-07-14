@@ -73,7 +73,7 @@ func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
 		dbTargetID = sql.NullString{String: targetID, Valid: true}
 	}
 
-	const updateRequest = `UPDATE converter.request SET target_id=$2, status=$3 WHERE id=$1;`
+	const updateRequest = `UPDATE converter.request SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
 	_, err := r.db.Exec(updateRequest, requestID, dbTargetID, status)
 
 	return err
