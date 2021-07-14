@@ -26,6 +26,11 @@ var (
 		Password: "qwerty123",
 	}
 	request = model.Request{
+		ID:       "1",
+		TargetID: "3",
+		Status:   "queued",
+	}
+	history = model.Request{
 		ID:           "1",
 		AudioName:    "Yesterday",
 		SourceFormat: "mp3",
@@ -61,7 +66,7 @@ func TestGetIDAndPasswordByUsername(t *testing.T) {
 		assertNoError(t, fmt.Errorf("error when getting id and password: '%w'", err))
 
 		if user.ID != gotID || user.Password != gotPassword {
-			t.Errorf("expected user to have id=%s and password=%s, but got id=%s and password=%s",
+			t.Errorf("user was expected to have id=%s and password=%s, but got id=%s and password=%s",
 				user.ID, user.Password, gotID, gotPassword)
 		}
 
@@ -90,15 +95,15 @@ func TestGetRequestHistory(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(`SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
 		FROM converter.request r JOIN converter.audio a ON a.id = r.source_id WHERE r.user_id=?`).
-			WithArgs(request.UserID).
+			WithArgs(history.UserID).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "source_format", "target_format", "created", "updated", "status"}).
-				AddRow(request.ID, request.AudioName, request.SourceFormat, request.TargetFormat, request.Created, request.Updated, request.Status))
+				AddRow(history.ID, history.AudioName, history.SourceFormat, history.TargetFormat, history.Created, history.Updated, history.Status))
 
-		gotRequest, err := repo.GetRequestHistory(request.UserID)
-		assertNoError(t, fmt.Errorf("error when getting audio by ID: '%w'", err))
+		gotRequest, err := repo.GetRequestHistory(history.UserID)
+		assertNoError(t, fmt.Errorf("error when getting request history: '%w'", err))
 
-		if request != gotRequest[0] {
-			t.Errorf("expected user to be %+v, but got %+v", request, gotRequest)
+		if history != gotRequest[0] {
+			t.Errorf("expected request history to be %+v, but got %+v", history, gotRequest)
 		}
 
 		err = mock.ExpectationsWereMet()
@@ -121,7 +126,7 @@ func TestGetAudioByID(t *testing.T) {
 		assertNoError(t, fmt.Errorf("error when getting audio by ID: '%w'", err))
 
 		if gotAudio != audio {
-			t.Errorf("expected user to be %+v, but got %+v", audio, gotAudio)
+			t.Errorf("expected audio to be %+v, but got %+v", audio, gotAudio)
 		}
 
 		err = mock.ExpectationsWereMet()
