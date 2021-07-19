@@ -24,6 +24,16 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	return db, mock
 }
 
+func NewMockWithMatcher() (*sql.DB, sqlmock.Sqlmock) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		logger.Fatal(context.Background(),
+			fmt.Errorf("an error '%s' was not expected when opening a stub database connection", err))
+	}
+
+	return db, mock
+}
+
 func TestGetIDAndPasswordByUsername(t *testing.T) {
 	db, mock := NewMock()
 	repo := &Repository{db}
