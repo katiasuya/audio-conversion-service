@@ -97,6 +97,8 @@ func TestGetRequestHistory(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
+	var dbErr = errors.New("test db error")
+
 	cases := []struct {
 		name            string
 		expectedHistory model.Request
@@ -122,6 +124,16 @@ func TestGetRequestHistory(t *testing.T) {
 						AddRow(r.ID, r.AudioName, r.SourceFormat, r.TargetFormat, r.Created, r.Updated, r.Status))
 			},
 		},
+		{
+			name:          "db call error",
+			expectedError: dbErr,
+			prepare: func(r model.Request) {
+				mock.ExpectQuery(`SELECT r.id, a.name, r.source_format, r.target_format, r.created, r.updated, r.status
+				FROM converter.request r JOIN converter.audio a ON a.id = r.source_id WHERE r.user_id=?`).
+					WithArgs(r.UserID).
+					WillReturnError(dbErr)
+			},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -132,14 +144,15 @@ func TestGetRequestHistory(t *testing.T) {
 				t.Errorf("expected error to be %v, but got %v", tc.expectedError, err)
 			}
 
-			if tc.expectedHistory != gotRequest[0] {
-				t.Errorf("expected user to be %+v, but got %+v", tc.expectedHistory, gotRequest)
+			if len(gotRequest) > 0 {
+				if tc.expectedHistory != gotRequest[0] {
+					t.Errorf("expected user to be %+v, but got %+v", tc.expectedHistory, gotRequest)
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Errorf("there were unfulfilled expectations: %v", err)
 			}
-
 		})
 	}
 }
