@@ -14,8 +14,8 @@ To set the configuration parameters for the application, set the following envir
 ```bash
 CONVERTER_HOST=your_host 
 CONVERTER_PORT=your_port 
-CONVERTER_USER=your_postgres_user 
-CONVERTER_PASSWORD=your_postgres_password  
+CONVERTER_USER=your_user 
+CONVERTER_PASSWORD=your_password  
 CONVERTER_DB=audioconverter  
 CONVERTER_SSLMODE=disable  
 ```
@@ -35,6 +35,15 @@ CONVERTER_BUCKET=your_bucket_name
 ```bash
 CONVERTER_URI=your_ampq_uri
 CONVERTER_QUEUENAME=your_queue_name 
+```
+[5]*
+```bash
+POSTGRES_HOST=postgres.local
+POSTGRES_PORT=your_port
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=audioconverter
+POSTGRES_SSLMODE=disable
 ```
 
 ## DataBase
@@ -80,6 +89,8 @@ For that, set corresponding environment variables from group [4].
 ## Docker
 
 To run your application in docker, create an `.env` file at the root of the directory  
-with the values, decribed in Configuration section.  
+with all the values, decribed in Configuration section. 
+Variables from group [5] are special for docker.
+For more info read `https://hub.docker.com/_/postgres`.
 
 Lastly, run `docker-compose up`.  
