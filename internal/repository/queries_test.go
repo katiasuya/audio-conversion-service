@@ -29,7 +29,7 @@ func TestGetIDAndPasswordByUsername(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
-	var dbErr = errors.New("test error")
+	var dbErr = errors.New("test db error")
 
 	cases := []struct {
 		name          string
@@ -149,7 +149,7 @@ func TestGetAudioByID(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
-	var dbErr = errors.New("test error")
+	var dbErr = errors.New("test db error")
 
 	cases := []struct {
 		name          string
@@ -217,7 +217,7 @@ func TestInsertUser(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
-	var dbErr = errors.New("test error")
+	var dbErr = errors.New("test db error")
 
 	cases := []struct {
 		name          string
@@ -284,7 +284,7 @@ func TestInsertAudio(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
-	var dbErr = errors.New("test error")
+	var dbErr = errors.New("test db error")
 
 	cases := []struct {
 		name          string
@@ -343,6 +343,9 @@ func TestUpdateRequest(t *testing.T) {
 	repo := &Repository{db}
 	defer repo.Close()
 
+	var dbErr = errors.New("test db error")
+	var rowsErr = errors.New("test rowsAffected error")
+
 	cases := []struct {
 		name          string
 		args          model.Request
@@ -353,7 +356,7 @@ func TestUpdateRequest(t *testing.T) {
 			name: "success",
 			args: model.Request{
 				ID:       "1",
-				TargetID: "3",
+				TargetID: "2",
 				Status:   "queued",
 			},
 			prepare: func(r model.Request) {
@@ -375,6 +378,33 @@ func TestUpdateRequest(t *testing.T) {
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 		},
+		{
+			name:          "no such request",
+			expectedError: ErrNoSuchRequest,
+			prepare: func(r model.Request) {
+				mock.ExpectExec("UPDATE converter.request SET (.*) WHERE id=?").
+					WithArgs(r.ID, sql.NullString{}, r.Status).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+		},
+		{
+			name:          "RowsAffected() error",
+			expectedError: rowsErr,
+			prepare: func(r model.Request) {
+				mock.ExpectExec("UPDATE converter.request SET (.*) WHERE id=?").
+					WithArgs(r.ID, sql.NullString{}, r.Status).
+					WillReturnResult(sqlmock.NewErrorResult(rowsErr))
+			},
+		},
+		{
+			name:          "db call error",
+			expectedError: dbErr,
+			prepare: func(r model.Request) {
+				mock.ExpectExec("UPDATE converter.request SET (.*) WHERE id=?").
+					WithArgs(r.ID, sql.NullString{}, r.Status).
+					WillReturnError(dbErr)
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -390,12 +420,5 @@ func TestUpdateRequest(t *testing.T) {
 				t.Errorf("there were unfulfilled expectations: %s", err)
 			}
 		})
-	}
-}
-
-func assertNoError(t *testing.T, err error) {
-	t.Helper()
-	if errors.Unwrap(err) != nil {
-		t.Errorf("No error expected, got '%v' ", err)
 	}
 }

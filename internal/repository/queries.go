@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/katiasuya/audio-conversion-service/internal/repository/model"
 	"github.com/lib/pq"
@@ -12,9 +13,10 @@ const codeUniqueViolation = "23505"
 
 //Errors represent database errors.
 var (
-	ErrNoSuchAudio       = errors.New("the audio with the given id does not exist")
-	ErrNoSuchUser        = errors.New("the user with the given username does not exist")
-	ErrUserAlreadyExists = errors.New("the user with the given username already exists")
+	ErrNoSuchAudio       = errors.New("audio with the given id does not exist")
+	ErrNoSuchUser        = errors.New("user with the given username does not exist")
+	ErrNoSuchRequest     = errors.New("request with the given id does not exist")
+	ErrUserAlreadyExists = errors.New("user with the given username already exists")
 )
 
 // InsertUser inserts the user into table "user".
@@ -37,7 +39,7 @@ func (r *Repository) GetIDAndPasswordByUsername(username string) (string, string
 
 	err := r.db.QueryRow(getIDAndPasswordByUsername, username).Scan(&userID, &password)
 	if err == sql.ErrNoRows {
-		return "", "", ErrNoSuchUser
+		return "", "", fmt.Errorf("%w: %s", ErrNoSuchUser, username)
 	}
 
 	return userID, password, err
@@ -74,9 +76,20 @@ func (r *Repository) UpdateRequest(requestID, status, targetID string) error {
 	}
 
 	const updateRequest = `UPDATE converter.request SET target_id=$2, status=$3, updated=DEFAULT WHERE id=$1;`
-	_, err := r.db.Exec(updateRequest, requestID, dbTargetID, status)
+	res, err := r.db.Exec(updateRequest, requestID, dbTargetID, status)
+	if err != nil {
+		return err
+	}
 
-	return err
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("can't get RowsAffected() result: %w", err)
+	}
+	if n == 0 {
+		return fmt.Errorf("%w: %s", ErrNoSuchRequest, requestID)
+	}
+
+	return nil
 }
 
 // GetRequestHistory gets the information about user's requests.
